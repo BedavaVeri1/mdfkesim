@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CutList Optimizer - Web</title>
+    <title>CutList Optimizer - Pro</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -14,16 +14,30 @@
     <div class="app-container">
         <div class="sidebar">
             <div class="logo-area">
-                <h2><i class="fas fa-layer-group"></i> CutOptimizer</h2>
+                <h2><i class="fas fa-layer-group"></i> CutOptimizer <span
+                        style="font-size:0.8rem; color:#888;">Pro</span></h2>
             </div>
 
             <div class="panel-section">
-                <h3>Stok Plaka (mm)</h3>
+                <h3>Stok Plaka Seçimi</h3>
+
                 <div class="input-group">
-                    <input type="number" id="stockW" placeholder="Genişlik" value="1830">
-                    <span>x</span>
-                    <input type="number" id="stockH" placeholder="Yükseklik" value="3660">
+                    <select id="stdStockSelect"
+                        style="width:100%; padding:8px; border:1px solid #e2e8f0; border-radius:4px;">
+                        <option value="custom">Özel Ölçü Giriniz...</option>
+                        <option value="2100-2800">2100 x 2800 mm (MDF Standart)</option>
+                        <option value="1830-3660">1830 x 3660 mm (Büyük Ebat)</option>
+                        <option value="2440-2100">2440 x 2100 mm</option>
+                        <option value="2440-2800">2440 x 2800 mm</option>
+                    </select>
                 </div>
+
+                <div class="input-group">
+                    <input type="number" id="stockW" placeholder="Genişlik" value="2100">
+                    <span>x</span>
+                    <input type="number" id="stockH" placeholder="Yükseklik" value="2800">
+                </div>
+
                 <div class="input-group">
                     <label>Bıçak Payı (mm):</label>
                     <input type="number" id="kerf" value="3" style="width: 60px;">
@@ -50,9 +64,9 @@
 
         <div class="main-content">
             <div class="stats-bar">
-                <div class="stat-item"><span>Toplam Plaka:</span><strong id="total-sheets">0</strong></div>
-                <div class="stat-item"><span>Yerleşim Oranı:</span><strong id="efficiency-rate">%0</strong></div>
-                <div class="stat-item"><span>Fire:</span><strong id="waste-rate">%0</strong></div>
+                <div class="stat-item"><span>Kullanılan Plaka:</span><strong id="total-sheets">0</strong></div>
+                <div class="stat-item"><span>Ortalama Verim:</span><strong id="efficiency-rate">%0</strong></div>
+                <div class="stat-item"><span>Toplam Fire:</span><strong id="waste-rate">%0</strong></div>
             </div>
 
             <div class="canvas-wrapper">

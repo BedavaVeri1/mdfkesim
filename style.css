@@ -35,6 +35,7 @@ body {
     padding: 20px;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
     overflow-y: auto;
+    z-index: 10;
 }
 
 .logo-area h2 {
@@ -70,7 +71,8 @@ body {
     margin-bottom: 10px;
 }
 
-.input-group input {
+.input-group input,
+.input-group select {
     width: 100%;
     padding: 8px;
     border: 1px solid var(--border);
@@ -149,6 +151,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: 20px;
+    overflow: hidden;
 }
 
 .stats-bar {
@@ -160,6 +163,7 @@ body {
     margin-bottom: 20px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--border);
+    flex-shrink: 0;
 }
 
 .stat-item {
@@ -177,14 +181,23 @@ body {
     color: var(--dark);
 }
 
+/* Canvas Area - Scrollable */
 .canvas-wrapper {
     flex: 1;
-    background: white;
+    background: #e5e5e5;
+    /* Arka planı koyulaştırdık ki plakalar belli olsun */
     border-radius: 8px;
     border: 1px solid var(--border);
+    overflow: auto;
+    /* Scroll barlar çıksın */
+    position: relative;
+    padding: 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
+    /* Dikey ortala */
+}
+
+canvas {
+    background-color: transparent;
+    box-shadow: none;
 }
