@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         labelBtn: document.getElementById('print-label-btn'),
         saveBtn: document.getElementById('save-btn'),
         loadBtn: document.getElementById('load-btn'),
+        templateBtn: document.getElementById('dl-template-btn'),
         clearBtn: document.getElementById('clear-btn'),
         excelInput: document.getElementById('excel-upload'),
         canvas: document.getElementById('cutCanvas'),
@@ -52,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.labelBtn.addEventListener('click', generateLabels);
 
         // Toolbar
+        dom.templateBtn = document.getElementById('dl-template-btn'); // DOM elementini tanımla
+        dom.templateBtn.addEventListener('click', downloadExcelTemplate);
         dom.saveBtn.addEventListener('click', saveProject);
         dom.loadBtn.addEventListener('click', loadProject);
         dom.clearBtn.addEventListener('click', () => {
@@ -638,3 +641,31 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(doc.output('bloburl'), '_blank');
     }
 });
+// --- EXCEL ŞABLON İNDİR ---
+function downloadExcelTemplate() {
+    // 1. Şablon Verisi (Başlıklar ve Örnek Satırlar)
+    const data = [
+        ["Parça Adı", "En (mm)", "Boy (mm)", "Adet"], // Başlık Satırı (A1, B1, C1, D1)
+        ["Mutfak Kapak", 450, 720, 2],                 // Örnek 1
+        ["Çekmece Önü", 450, 180, 4],                 // Örnek 2
+        ["Raf", 300, 500, 1]                          // Örnek 3
+    ];
+
+    // 2. Çalışma Kitabı Oluştur
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    // 3. Sütun Genişliklerini Ayarla (Görsel Güzellik)
+    ws['!cols'] = [
+        { wch: 20 }, // A sütunu genişliği
+        { wch: 10 }, // B
+        { wch: 10 }, // C
+        { wch: 10 }  // D
+    ];
+
+    // 4. Sayfayı Kitaba Ekle
+    XLSX.utils.book_append_sheet(wb, ws, "Kesim Listesi");
+
+    // 5. İndir
+    XLSX.writeFile(wb, "MdfKesim_Sablon.xlsx");
+}
