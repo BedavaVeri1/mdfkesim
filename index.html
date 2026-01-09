@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CutList Optimizer - Pro</title>
+    <title>MdfKesim - Web Optimizasyon</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -14,8 +15,8 @@
     <div class="app-container">
         <div class="sidebar">
             <div class="logo-area">
-                <h2><i class="fas fa-layer-group"></i> CutOptimizer <span
-                        style="font-size:0.8rem; color:#888;">Pro</span></h2>
+                <h2><i class="fas fa-layer-group"></i> MdfKesim <span style="font-size:0.8rem; color:#888;">Pro</span>
+                </h2>
             </div>
 
             <div class="panel-section">
@@ -59,6 +60,9 @@
 
             <div class="action-area">
                 <button id="calculate-btn" class="btn-primary">HESAPLA & ÇİZ</button>
+                <button id="download-pdf-btn" class="btn-danger" style="display: none;">
+                    <i class="fas fa-file-pdf"></i> PLANLARI PDF İNDİR
+                </button>
             </div>
         </div>
 

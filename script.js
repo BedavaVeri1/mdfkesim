@@ -4,14 +4,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const partsList = document.getElementById('parts-list');
     const addPartBtn = document.getElementById('add-part-btn');
     const calculateBtn = document.getElementById('calculate-btn');
+    const pdfBtn = document.getElementById('download-pdf-btn'); // PDF Butonu
     const canvas = document.getElementById('cutCanvas');
     const ctx = canvas.getContext('2d');
     const stdStockSelect = document.getElementById('stdStockSelect');
     const stockWInput = document.getElementById('stockW');
     const stockHInput = document.getElementById('stockH');
 
-    // Renk Haritası (Boyut -> Renk)
+    // Renk Haritası
     let colorMap = {};
+    // PDF için hesaplanan veriyi sakla
+    let lastCalculatedSheets = [];
+    let lastStockW = 0;
+    let lastStockH = 0;
 
     // Başlangıç
     addPartRow();
@@ -19,8 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS ---
     if (addPartBtn) addPartBtn.addEventListener('click', () => addPartRow());
     if (calculateBtn) calculateBtn.addEventListener('click', runOptimization);
+    if (pdfBtn) pdfBtn.addEventListener('click', generatePDF); // PDF Click
 
-    // Standart Ölçü Seçimi Mantığı
+    // Standart Ölçü Seçimi
     if (stdStockSelect) {
         stdStockSelect.addEventListener('change', (e) => {
             const val = e.target.value;
@@ -32,8 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const [w, h] = val.split('-');
                 stockWInput.value = w;
                 stockHInput.value = h;
-                // Kullanıcı değiştiremesin diye kilitleyebiliriz veya serbest bırakabiliriz
-                // Ben kolaylık olsun diye serbest bırakıyorum ama değerleri atadım.
             }
         });
     }
@@ -51,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         partsList.appendChild(row);
     }
 
-    // --- GUILLOTINE PACKER CLASS ---
+    // --- GUILLOTINE PACKER ALGORİTMASI ---
     class GuillotinePacker {
         constructor(width, height) {
             this.binWidth = width;
@@ -61,19 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         fit(blocks) {
-            // Sadece bu plakaya sığabilecekleri dene
-            // Henüz yerleşmemiş (fit: null) olanları al
             const remainingBlocks = blocks.filter(b => !b.fit);
-
-            // Strateji: Uzun kenarı büyük olan öncelikli
             remainingBlocks.sort((a, b) => Math.max(b.w, b.h) - Math.max(a.w, a.h));
 
             remainingBlocks.forEach(block => {
                 const node = this.findPositionForNewNode(block);
                 if (node) {
-                    // Blok yerleşti, işaretle
                     block.fit = node;
-                    // Bu packer'ın yerleştirdiği bloklar listesine ekle
                     this.placedBlocks.push(block);
                     this.splitFreeRectangles(node);
                 }
@@ -86,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             for (let i = 0; i < this.freeRectangles.length; i++) {
                 const freeRect = this.freeRectangles[i];
-
                 // Normal
                 if (block.w <= freeRect.w && block.h <= freeRect.h) {
                     const score = this.calculateScore(freeRect, block.w, block.h);
@@ -116,55 +113,38 @@ document.addEventListener('DOMContentLoaded', () => {
         splitFreeRectangles(placedNode) {
             const freeRect = this.freeRectangles[placedNode.freeRectIndex];
             this.freeRectangles.splice(placedNode.freeRectIndex, 1);
-
             const w = placedNode.w;
             const h = placedNode.h;
-
-            // Kalan alanları hesapla
             const rightW = freeRect.w - w;
             const bottomH = freeRect.h - h;
 
-            // Short Axis Split
             if (rightW > bottomH) {
                 if (rightW > 0) this.freeRectangles.push({ x: freeRect.x + w, y: freeRect.y, w: rightW, h: h });
-                if (bottomH > 0) this.freeRectangles.push({ x: freeRect.x, y: freeRect.y + h, w: freeRect.w, h: bottomH }); // bottom full width
+                if (bottomH > 0) this.freeRectangles.push({ x: freeRect.x, y: freeRect.y + h, w: freeRect.w, h: bottomH });
             } else {
-                if (rightW > 0) this.freeRectangles.push({ x: freeRect.x + w, y: freeRect.y, w: rightW, h: freeRect.h }); // right full height
+                if (rightW > 0) this.freeRectangles.push({ x: freeRect.x + w, y: freeRect.y, w: rightW, h: freeRect.h });
                 if (bottomH > 0) this.freeRectangles.push({ x: freeRect.x, y: freeRect.y + h, w: w, h: bottomH });
             }
-
-            // Temizlik (çok küçük parçaları sil)
             this.freeRectangles = this.freeRectangles.filter(r => r.w > 0 && r.h > 0);
         }
     }
 
-    // --- ÇOKLU PLAKA YÖNETİMİ ---
+    // --- HESAPLAMA ---
     function runOptimization() {
-        // Renk haritasını sıfırla (İstersen sıfırlamayabilirsin, renkler sabit kalsın diye)
-        // colorMap = {}; 
-
         const stockW = parseFloat(document.getElementById('stockW').value) || 0;
         const stockH = parseFloat(document.getElementById('stockH').value) || 0;
         const kerf = parseFloat(document.getElementById('kerf').value) || 0;
+        lastStockW = stockW;
+        lastStockH = stockH;
 
         let allBlocks = [];
-
-        // Girdileri Al
         document.querySelectorAll('.part-row').forEach(row => {
             const w = parseFloat(row.querySelector('.p-w').value);
             const h = parseFloat(row.querySelector('.p-h').value);
             const q = parseInt(row.querySelector('.p-q').value);
-
             if (w && h && q) {
                 for (let i = 0; i < q; i++) {
-                    allBlocks.push({
-                        w: w + kerf,
-                        h: h + kerf,
-                        realW: w,
-                        realH: h,
-                        fit: null,
-                        id: i // unique id gerekebilir
-                    });
+                    allBlocks.push({ w: w + kerf, h: h + kerf, realW: w, realH: h, fit: null });
                 }
             }
         });
@@ -174,121 +154,86 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // --- MULTI-BIN PACKING LOOP ---
-        let sheets = []; // Kullanılan plakaları burada tutacağız
+        let sheets = [];
         let safetyLoop = 0;
 
-        // Tüm parçalar yerleşene kadar yeni plaka aç
         while (allBlocks.some(b => !b.fit) && safetyLoop < 100) {
             const packer = new GuillotinePacker(stockW, stockH);
             packer.fit(allBlocks);
-
-            // Bu plakaya yerleşen oldu mu?
-            if (packer.placedBlocks.length > 0) {
-                sheets.push(packer);
-            } else {
-                // Eğer hiç parça yerleşmediyse ve hala yerleşmemiş parça varsa,
-                // demek ki kalan parçalar plaka boyutundan BÜYÜK. Döngüyü kır.
-                break;
-            }
+            if (packer.placedBlocks.length > 0) sheets.push(packer);
+            else break;
             safetyLoop++;
         }
 
-        // İstatistikler (Tüm plakaların ortalaması)
+        // Global değişkene kaydet (PDF için)
+        lastCalculatedSheets = sheets;
+
+        // İstatistik
         let totalUsedArea = 0;
-        const oneSheetArea = stockW * stockH;
-
         sheets.forEach(sheet => {
-            sheet.placedBlocks.forEach(b => {
-                totalUsedArea += b.realW * b.realH;
-            });
+            sheet.placedBlocks.forEach(b => totalUsedArea += b.realW * b.realH);
         });
-
-        const totalSheetArea = sheets.length * oneSheetArea;
+        const totalSheetArea = sheets.length * (stockW * stockH);
         const efficiency = totalSheetArea > 0 ? (totalUsedArea / totalSheetArea) * 100 : 0;
 
         document.getElementById('total-sheets').innerText = sheets.length;
         document.getElementById('efficiency-rate').innerText = "%" + efficiency.toFixed(1);
         document.getElementById('waste-rate').innerText = "%" + (100 - efficiency).toFixed(1);
 
-        // Hata Kontrolü
         const unplacedCount = allBlocks.filter(b => !b.fit).length;
-        if (unplacedCount > 0) {
-            alert(`${unplacedCount} adet parça çok büyük olduğu için hiçbir plakaya sığmadı!`);
-        }
+        if (unplacedCount > 0) alert(`${unplacedCount} adet parça sığmadı!`);
 
-        // Çizim
+        // PDF Butonunu göster
+        pdfBtn.style.display = 'block';
+
         drawAllSheets(stockW, stockH, sheets);
     }
 
-    // --- GELİŞMİŞ ÇİZİM ---
+    // --- EKRAN ÇİZİMİ ---
     function drawAllSheets(stockW, stockH, sheets) {
-        // Ekrana sığdırma hesabı
-        // Plakaları yan yana çizeceğiz, aralarında boşluk olacak
         const GAP = 50;
         const wrapper = document.querySelector('.canvas-wrapper');
-        const availH = wrapper.clientHeight - 40; // Yükseklik kısıtlı
+        const availH = wrapper.clientHeight - 40;
 
-        // Ölçek, yüksekliğe göre belirlensin ki hepsi ekrana sığsın
-        // (Veya genişlik çok fazlaysa scroll çıkar)
         let scale = availH / stockH;
-
-        // Çok küçük olmasın
         if (scale < 0.1) scale = 0.1;
 
-        // Canvas Genişliği = (Plaka Genişliği * Plaka Sayısı) + Boşluklar
-        const totalW = (stockW * scale * sheets.length) + (GAP * (sheets.length - 1)) + 100; // +padding
+        const totalW = (stockW * scale * sheets.length) + (GAP * (sheets.length - 1)) + 100;
 
         canvas.width = totalW;
-        canvas.height = (stockH * scale) + 60; // +Başlık payı
+        canvas.height = (stockH * scale) + 60;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Her plakayı çiz
         sheets.forEach((sheet, index) => {
             const startX = index * (stockW * scale + GAP) + 20;
-            const startY = 40; // Başlık için yer bırak
+            const startY = 40;
 
-            // Plaka Başlığı
             ctx.fillStyle = '#333';
             ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'left';
-            ctx.fillText(`${index + 1}. Plaka`, startX, 25);
+            ctx.fillText(`${index + 1}. Plaka (MdfKesim)`, startX, 25);
 
-            // Plaka Zemin
             ctx.fillStyle = '#e2c799';
             ctx.fillRect(startX, startY, stockW * scale, stockH * scale);
             ctx.strokeStyle = '#8d5a2a';
             ctx.lineWidth = 2;
             ctx.strokeRect(startX, startY, stockW * scale, stockH * scale);
 
-            // Parçalar
             sheet.placedBlocks.forEach(block => {
-                // Koordinatlar (Global canvas'a göre offsetle)
                 const x = startX + (block.fit.x * scale);
                 const y = startY + (block.fit.y * scale);
 
-                let drawW, drawH;
-                if (block.fit.rotated) {
-                    drawW = block.realH * scale;
-                    drawH = block.realW * scale;
-                } else {
-                    drawW = block.realW * scale;
-                    drawH = block.realH * scale;
-                }
+                let drawW = (block.fit.rotated ? block.realH : block.realW) * scale;
+                let drawH = (block.fit.rotated ? block.realW : block.realH) * scale;
 
-                // RENK SEÇİMİ (Boyuta göre)
-                // Boyut stringi oluştur: "200x500"
-                // Döndürülmüş olsa bile standart bir key oluşturmak için küçükx büyük yap
                 const dimKey = Math.min(block.realW, block.realH) + 'x' + Math.max(block.realW, block.realH);
                 ctx.fillStyle = getColorForDimension(dimKey);
-
                 ctx.fillRect(x, y, drawW, drawH);
                 ctx.strokeStyle = '#444';
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x, y, drawW, drawH);
 
-                // Metin
                 if (drawW > 20 && drawH > 14) {
                     ctx.fillStyle = '#000';
                     ctx.font = '10px Arial';
@@ -303,14 +248,102 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Rastgele ama tutarlı renk üretici
+    // --- PDF OLUŞTURMA FONKSİYONU ---
+    async function generatePDF() {
+        if (!lastCalculatedSheets || lastCalculatedSheets.length === 0) return;
+
+        const { jsPDF } = window.jspdf;
+        // PDF dökümanı oluştur (Yatay - Landscape)
+        const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        // Geçici bir canvas oluştur (Yüksek çözünürlük için)
+        const tempCanvas = document.createElement('canvas');
+        const tCtx = tempCanvas.getContext('2d');
+
+        // Yüksek kalite için scale faktörü
+        const renderScale = 0.5; // Pixel/mm oranı (ayarlanabilir)
+
+        for (let i = 0; i < lastCalculatedSheets.length; i++) {
+            if (i > 0) doc.addPage(); // İlk sayfa hariç yeni sayfa ekle
+
+            const sheet = lastCalculatedSheets[i];
+
+            // Canvas'ı plaka boyutuna ayarla (Pixel cinsinden)
+            tempCanvas.width = lastStockW * renderScale;
+            tempCanvas.height = lastStockH * renderScale;
+
+            // Temizle ve Zemin Çiz
+            tCtx.fillStyle = '#ffffff'; // Kağıt beyazı
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // Plaka Sınırları
+            tCtx.fillStyle = '#eee';
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tCtx.strokeStyle = '#000';
+            tCtx.lineWidth = 2;
+            tCtx.strokeRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // Parçaları Çiz (Temp Canvas'a)
+            sheet.placedBlocks.forEach(block => {
+                const x = block.fit.x * renderScale;
+                const y = block.fit.y * renderScale;
+                const w = (block.fit.rotated ? block.realH : block.realW) * renderScale;
+                const h = (block.fit.rotated ? block.realW : block.realH) * renderScale;
+
+                // PDF'te gri tonlama daha şık durur ama renkli de olur
+                // tCtx.fillStyle = '#ddd'; 
+                const dimKey = Math.min(block.realW, block.realH) + 'x' + Math.max(block.realW, block.realH);
+                tCtx.fillStyle = getColorForDimension(dimKey);
+
+                tCtx.fillRect(x, y, w, h);
+                tCtx.strokeStyle = '#000';
+                tCtx.lineWidth = 2; // Çizgi kalınlığı
+                tCtx.strokeRect(x, y, w, h);
+
+                // Yazı
+                tCtx.fillStyle = '#000';
+                tCtx.font = 'bold 24px Arial'; // PDF için büyük font
+                tCtx.textAlign = 'center';
+                tCtx.textBaseline = 'middle';
+                const text = block.fit.rotated
+                    ? `${block.realW}x${block.realH} (R)`
+                    : `${block.realW}x${block.realH}`;
+
+                // Çok küçük parçalara yazma
+                if (w > 40 && h > 20) {
+                    tCtx.fillText(text, x + w / 2, y + h / 2);
+                }
+            });
+
+            // Canvas'ı Resme Dönüştür
+            const imgData = tempCanvas.toDataURL('image/jpeg', 0.8);
+
+            // Resmi PDF'e sığdır (Aspect Ratio koruyarak)
+            const ratio = Math.min((pageWidth - 20) / lastStockW, (pageHeight - 20) / lastStockH);
+            const pdfW = lastStockW * ratio;
+            const pdfH = lastStockH * ratio;
+
+            const marginX = (pageWidth - pdfW) / 2;
+            const marginY = (pageHeight - pdfH) / 2;
+
+            doc.setFontSize(16);
+            doc.text(`MdfKesim Planı - Plaka ${i + 1}`, 10, 10);
+            doc.text(`Stok: ${lastStockW}x${lastStockH}mm`, 10, 18);
+
+            doc.addImage(imgData, 'JPEG', marginX, marginY + 5, pdfW, pdfH);
+        }
+
+        // İndir
+        doc.save('MdfKesim-Planlari.pdf');
+    }
+
     function getColorForDimension(key) {
         if (!colorMap[key]) {
-            // Yeni bir pastel renk üret ve kaydet
             const hue = Math.floor(Math.random() * 360);
-            const sat = 60 + Math.random() * 20; // %60-80
-            const lig = 75 + Math.random() * 15; // %75-90
-            colorMap[key] = `hsl(${hue}, ${sat}%, ${lig}%)`;
+            colorMap[key] = `hsl(${hue}, 60%, 80%)`;
         }
         return colorMap[key];
     }
