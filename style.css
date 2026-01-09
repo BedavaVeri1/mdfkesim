@@ -45,6 +45,14 @@ body {
 
 .panel-section {
     margin-bottom: 25px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 15px;
+}
+
+.panel-section.flex-grow {
+    flex-grow: 1;
+    border: none;
+    overflow-y: auto;
 }
 
 .panel-section h3 {
@@ -68,12 +76,6 @@ body {
     border: 1px solid var(--border);
     border-radius: 4px;
     font-size: 14px;
-}
-
-.input-group.full-width {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
 }
 
 /* Parts List */
@@ -119,6 +121,7 @@ body {
     font-weight: bold;
     font-size: 1rem;
     transition: 0.2s;
+    margin-top: 10px;
 }
 
 .btn-primary:hover {
@@ -182,10 +185,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: auto;
+    overflow: hidden;
     position: relative;
-}
-
-canvas {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }

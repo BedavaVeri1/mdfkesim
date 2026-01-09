@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CutList Optimizer - Kesim Optimizasyonu</title>
+    <title>CutList Optimizer - Web</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -24,9 +24,9 @@
                     <span>x</span>
                     <input type="number" id="stockH" placeholder="Yükseklik" value="3660">
                 </div>
-                <div class="input-group full-width">
+                <div class="input-group">
                     <label>Bıçak Payı (mm):</label>
-                    <input type="number" id="kerf" value="3">
+                    <input type="number" id="kerf" value="3" style="width: 60px;">
                 </div>
             </div>
 
@@ -50,18 +50,9 @@
 
         <div class="main-content">
             <div class="stats-bar">
-                <div class="stat-item">
-                    <span>Toplam Plaka:</span>
-                    <strong id="total-sheets">0</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Yerleşim Oranı:</span>
-                    <strong id="efficiency-rate">%0</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Fire:</span>
-                    <strong id="waste-rate">%0</strong>
-                </div>
+                <div class="stat-item"><span>Toplam Plaka:</span><strong id="total-sheets">0</strong></div>
+                <div class="stat-item"><span>Yerleşim Oranı:</span><strong id="efficiency-rate">%0</strong></div>
+                <div class="stat-item"><span>Fire:</span><strong id="waste-rate">%0</strong></div>
             </div>
 
             <div class="canvas-wrapper">
