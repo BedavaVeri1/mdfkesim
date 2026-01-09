@@ -1,61 +1,201 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM ELEMENTLERİ ---
-    const partsList = document.getElementById('parts-list');
-    const addPartBtn = document.getElementById('add-part-btn');
-    const calculateBtn = document.getElementById('calculate-btn');
-    const pdfBtn = document.getElementById('download-pdf-btn'); // PDF Butonu
-    const canvas = document.getElementById('cutCanvas');
-    const ctx = canvas.getContext('2d');
-    const stdStockSelect = document.getElementById('stdStockSelect');
-    const stockWInput = document.getElementById('stockW');
-    const stockHInput = document.getElementById('stockH');
+    const dom = {
+        partsList: document.getElementById('parts-list'),
+        addPartBtn: document.getElementById('add-part-btn'),
+        calculateBtn: document.getElementById('calculate-btn'),
+        pdfBtn: document.getElementById('download-pdf-btn'),
+        labelBtn: document.getElementById('print-label-btn'),
+        saveBtn: document.getElementById('save-btn'),
+        loadBtn: document.getElementById('load-btn'),
+        clearBtn: document.getElementById('clear-btn'),
+        excelInput: document.getElementById('excel-upload'),
+        canvas: document.getElementById('cutCanvas'),
+        ctx: document.getElementById('cutCanvas').getContext('2d'),
+        stdStockSelect: document.getElementById('stdStockSelect'),
+        inputs: {
+            stockW: document.getElementById('stockW'),
+            stockH: document.getElementById('stockH'),
+            kerf: document.getElementById('kerf'),
+            banding: document.getElementById('bandingThick'),
+            sheetPrice: document.getElementById('sheetPrice'),
+            cutPrice: document.getElementById('cutPrice')
+        },
+        stats: {
+            sheets: document.getElementById('total-sheets'),
+            efficiency: document.getElementById('efficiency-rate'),
+            cost: document.getElementById('total-cost'),
+            cutLen: document.getElementById('total-cut-len')
+        },
+        offcutsList: document.getElementById('offcuts-list')
+    };
 
-    // Renk Haritası
-    let colorMap = {};
-    // PDF için hesaplanan veriyi sakla
-    let lastCalculatedSheets = [];
-    let lastStockW = 0;
-    let lastStockH = 0;
+    // Global Durum
+    let projectState = {
+        sheets: [], // Hesaplanmış plakalar
+        blocks: [], // Ham parça listesi
+        settings: {}
+    };
 
-    // Başlangıç
-    addPartRow();
+    let colorMap = {}; // Renk önbelleği
 
-    // --- EVENT LISTENERS ---
-    if (addPartBtn) addPartBtn.addEventListener('click', () => addPartRow());
-    if (calculateBtn) calculateBtn.addEventListener('click', runOptimization);
-    if (pdfBtn) pdfBtn.addEventListener('click', generatePDF); // PDF Click
+    // --- BAŞLANGIÇ ---
+    addPartRow(); // İlk satır
+    setupEventListeners();
 
-    // Standart Ölçü Seçimi
-    if (stdStockSelect) {
-        stdStockSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            if (val === 'custom') {
-                stockWInput.readOnly = false;
-                stockHInput.readOnly = false;
-                stockWInput.focus();
-            } else {
-                const [w, h] = val.split('-');
-                stockWInput.value = w;
-                stockHInput.value = h;
+    // --- EVENT LISTENERS KURULUMU ---
+    function setupEventListeners() {
+        dom.addPartBtn.addEventListener('click', () => addPartRow());
+        dom.calculateBtn.addEventListener('click', runOptimization);
+        dom.pdfBtn.addEventListener('click', generatePDF);
+        dom.labelBtn.addEventListener('click', generateLabels);
+
+        // Toolbar
+        dom.saveBtn.addEventListener('click', saveProject);
+        dom.loadBtn.addEventListener('click', loadProject);
+        dom.clearBtn.addEventListener('click', () => {
+            if (confirm('Tüm liste silinecek?')) { dom.partsList.innerHTML = ''; addPartRow(); }
+        });
+        dom.excelInput.addEventListener('change', handleExcelUpload);
+
+        // Stok Seçimi
+        dom.stdStockSelect.addEventListener('change', (e) => {
+            if (e.target.value !== 'custom') {
+                const [w, h] = e.target.value.split('-');
+                dom.inputs.stockW.value = w;
+                dom.inputs.stockH.value = h;
             }
         });
     }
 
-    function addPartRow() {
+    // --- UI FONKSİYONLARI ---
+
+    function addPartRow(data = {}) {
         const row = document.createElement('div');
         row.className = 'part-row';
+
+        // Varsayılan Değerler
+        const name = data.name || '';
+        const w = data.w || '';
+        const h = data.h || '';
+        const q = data.q || 1;
+        const rot = data.rot !== undefined ? data.rot : true; // Default rotate allowed
+        // Banding: [Top, Right, Bottom, Left]
+        const b = data.b || [false, false, false, false];
+
         row.innerHTML = `
-            <input type="number" placeholder="G" class="p-w">
-            <input type="number" placeholder="Y" class="p-h">
-            <input type="number" value="1" class="p-q">
-            <button class="btn-del"><i class="fas fa-trash"></i></button>
+            <input type="text" placeholder="Adı" class="p-name" value="${name}" style="flex:2">
+            <input type="number" placeholder="En" class="p-w" value="${w}" style="flex:1.5">
+            <input type="number" placeholder="Boy" class="p-h" value="${h}" style="flex:1.5">
+            <input type="number" value="${q}" class="p-q" style="flex:1">
+            
+            <div style="flex:0.5; text-align:center;">
+                <input type="checkbox" class="rotate-chk" title="Döndürmeye İzin Ver" ${rot ? 'checked' : ''}>
+            </div>
+
+            <div class="banding-grid" style="flex:1" title="Kenar Bantlama (Üst, Sağ, Alt, Sol)">
+                <input type="checkbox" class="banding-chk b-top" ${b[0] ? 'checked' : ''}>
+                <input type="checkbox" class="banding-chk b-right" ${b[1] ? 'checked' : ''}>
+                <input type="checkbox" class="banding-chk b-bottom" ${b[2] ? 'checked' : ''}>
+                <input type="checkbox" class="banding-chk b-left" ${b[3] ? 'checked' : ''}>
+            </div>
+
+            <button class="btn-del" style="flex:0.5"><i class="fas fa-times"></i></button>
         `;
-        row.querySelector('.btn-del').addEventListener('click', function () { row.remove(); });
-        partsList.appendChild(row);
+
+        row.querySelector('.btn-del').addEventListener('click', () => row.remove());
+        dom.partsList.appendChild(row);
     }
 
-    // --- GUILLOTINE PACKER ALGORİTMASI ---
+    // --- EXCEL IMPORT ---
+    function handleExcelUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+            // Başlığı atla (satır 0), verileri al
+            // Beklenen Format: [Ad, En, Boy, Adet]
+            // Basit zeka: Eğer sayı varsa al
+
+            dom.partsList.innerHTML = ''; // Listeyi temizle
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length >= 3) {
+                    addPartRow({
+                        name: row[0] || 'Parça ' + i,
+                        w: row[1],
+                        h: row[2],
+                        q: row[3] || 1
+                    });
+                }
+            }
+            alert(`${rows.length - 1} parça yüklendi.`);
+        };
+        reader.readAsArrayBuffer(file);
+        // Reset input
+        dom.excelInput.value = '';
+    }
+
+    // --- PROJE KAYDET / YÜKLE ---
+    function saveProject() {
+        const parts = [];
+        document.querySelectorAll('.part-row').forEach(row => {
+            parts.push({
+                name: row.querySelector('.p-name').value,
+                w: row.querySelector('.p-w').value,
+                h: row.querySelector('.p-h').value,
+                q: row.querySelector('.p-q').value,
+                rot: row.querySelector('.rotate-chk').checked,
+                b: [
+                    row.querySelector('.b-top').checked,
+                    row.querySelector('.b-right').checked,
+                    row.querySelector('.b-bottom').checked,
+                    row.querySelector('.b-left').checked
+                ]
+            });
+        });
+
+        const project = {
+            parts: parts,
+            settings: {
+                stockW: dom.inputs.stockW.value,
+                stockH: dom.inputs.stockH.value,
+                kerf: dom.inputs.kerf.value,
+                banding: dom.inputs.banding.value
+            }
+        };
+
+        localStorage.setItem('mdfProject', JSON.stringify(project));
+        alert('Proje tarayıcıya kaydedildi!');
+    }
+
+    function loadProject() {
+        const data = localStorage.getItem('mdfProject');
+        if (!data) { alert('Kaydedilmiş proje bulunamadı.'); return; }
+
+        const project = JSON.parse(data);
+
+        // Ayarları Yükle
+        dom.inputs.stockW.value = project.settings.stockW;
+        dom.inputs.stockH.value = project.settings.stockH;
+        dom.inputs.kerf.value = project.settings.kerf;
+        dom.inputs.banding.value = project.settings.banding;
+
+        // Parçaları Yükle
+        dom.partsList.innerHTML = '';
+        project.parts.forEach(p => addPartRow(p));
+        alert('Proje yüklendi.');
+    }
+
+    // --- HESAPLAMA MOTORU (GUILLOTINE PACKER) ---
     class GuillotinePacker {
         constructor(width, height) {
             this.binWidth = width;
@@ -65,38 +205,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         fit(blocks) {
-            const remainingBlocks = blocks.filter(b => !b.fit);
-            remainingBlocks.sort((a, b) => Math.max(b.w, b.h) - Math.max(a.w, a.h));
+            // Önce alanı en büyük, sonra uzun kenarı en büyük olanı dene
+            const remaining = blocks.filter(b => !b.fit);
+            remaining.sort((a, b) => Math.max(b.cw, b.ch) - Math.max(a.cw, a.ch));
 
-            remainingBlocks.forEach(block => {
-                const node = this.findPositionForNewNode(block);
+            remaining.forEach(block => {
+                const node = this.findPosition(block);
                 if (node) {
                     block.fit = node;
                     this.placedBlocks.push(block);
-                    this.splitFreeRectangles(node);
+                    this.splitRect(node);
                 }
             });
         }
 
-        findPositionForNewNode(block) {
+        findPosition(block) {
             let bestNode = null;
             let bestScore = Number.MAX_VALUE;
 
             for (let i = 0; i < this.freeRectangles.length; i++) {
-                const freeRect = this.freeRectangles[i];
-                // Normal
-                if (block.w <= freeRect.w && block.h <= freeRect.h) {
-                    const score = this.calculateScore(freeRect, block.w, block.h);
+                const free = this.freeRectangles[i];
+
+                // 1. Düz Yerleşim (CutWidth, CutHeight)
+                if (block.cw <= free.w && block.ch <= free.h) {
+                    const score = this.score(free, block.cw, block.ch);
                     if (score < bestScore) {
-                        bestNode = { x: freeRect.x, y: freeRect.y, w: block.w, h: block.h, rotated: false, freeRectIndex: i };
+                        bestNode = { x: free.x, y: free.y, w: block.cw, h: block.ch, rotated: false, index: i };
                         bestScore = score;
                     }
                 }
-                // Döndürülmüş
-                if (block.h <= freeRect.w && block.w <= freeRect.h) {
-                    const score = this.calculateScore(freeRect, block.h, block.w);
+
+                // 2. Döndürerek Yerleşim (Eğer izin varsa)
+                if (block.allowRotate && block.ch <= free.w && block.cw <= free.h) {
+                    const score = this.score(free, block.ch, block.cw);
                     if (score < bestScore) {
-                        bestNode = { x: freeRect.x, y: freeRect.y, w: block.h, h: block.w, rotated: true, freeRectIndex: i };
+                        bestNode = { x: free.x, y: free.y, w: block.ch, h: block.cw, rotated: true, index: i };
                         bestScore = score;
                     }
                 }
@@ -104,247 +247,394 @@ document.addEventListener('DOMContentLoaded', () => {
             return bestNode;
         }
 
-        calculateScore(freeRect, width, height) {
-            const leftoverHoriz = Math.abs(freeRect.w - width);
-            const leftoverVert = Math.abs(freeRect.h - height);
-            return Math.min(leftoverHoriz, leftoverVert);
+        score(free, w, h) {
+            // BSSF: Best Short Side Fit
+            const sx = Math.abs(free.w - w);
+            const sy = Math.abs(free.h - h);
+            return Math.min(sx, sy);
         }
 
-        splitFreeRectangles(placedNode) {
-            const freeRect = this.freeRectangles[placedNode.freeRectIndex];
-            this.freeRectangles.splice(placedNode.freeRectIndex, 1);
-            const w = placedNode.w;
-            const h = placedNode.h;
-            const rightW = freeRect.w - w;
-            const bottomH = freeRect.h - h;
+        splitRect(node) {
+            const free = this.freeRectangles[node.index];
+            this.freeRectangles.splice(node.index, 1);
+
+            // Bölme (Split)
+            const w = node.w;
+            const h = node.h;
+
+            // Kalan Alanlar
+            // Öncelik: Kısa kenarı minimize et (Split along shorter axis)
+            const rightW = free.w - w;
+            const bottomH = free.h - h;
 
             if (rightW > bottomH) {
-                if (rightW > 0) this.freeRectangles.push({ x: freeRect.x + w, y: freeRect.y, w: rightW, h: h });
-                if (bottomH > 0) this.freeRectangles.push({ x: freeRect.x, y: freeRect.y + h, w: freeRect.w, h: bottomH });
+                if (rightW > 0) this.freeRectangles.push({ x: free.x + w, y: free.y, w: rightW, h: h });
+                if (bottomH > 0) this.freeRectangles.push({ x: free.x, y: free.y + h, w: free.w, h: bottomH });
             } else {
-                if (rightW > 0) this.freeRectangles.push({ x: freeRect.x + w, y: freeRect.y, w: rightW, h: freeRect.h });
-                if (bottomH > 0) this.freeRectangles.push({ x: freeRect.x, y: freeRect.y + h, w: w, h: bottomH });
+                if (rightW > 0) this.freeRectangles.push({ x: free.x + w, y: free.y, w: rightW, h: free.h });
+                if (bottomH > 0) this.freeRectangles.push({ x: free.x, y: free.y + h, w: w, h: bottomH });
             }
+            // Çöp temizliği
             this.freeRectangles = this.freeRectangles.filter(r => r.w > 0 && r.h > 0);
         }
     }
 
-    // --- HESAPLAMA ---
+    // --- ANA ÇALIŞTIRMA ---
     function runOptimization() {
-        const stockW = parseFloat(document.getElementById('stockW').value) || 0;
-        const stockH = parseFloat(document.getElementById('stockH').value) || 0;
-        const kerf = parseFloat(document.getElementById('kerf').value) || 0;
-        lastStockW = stockW;
-        lastStockH = stockH;
+        // 1. Ayarları Al
+        const stockW = parseFloat(dom.inputs.stockW.value);
+        const stockH = parseFloat(dom.inputs.stockH.value);
+        const kerf = parseFloat(dom.inputs.kerf.value);
+        const bandThick = parseFloat(dom.inputs.banding.value);
+        const sheetPrice = parseFloat(dom.inputs.sheetPrice.value);
+        const cutPrice = parseFloat(dom.inputs.cutPrice.value);
 
-        let allBlocks = [];
+        if (!stockW || !stockH) { alert('Stok ölçülerini girin!'); return; }
+
+        // 2. Parçaları Topla ve İşle (Bant Payı Düşme)
+        let blocks = [];
         document.querySelectorAll('.part-row').forEach(row => {
-            const w = parseFloat(row.querySelector('.p-w').value);
-            const h = parseFloat(row.querySelector('.p-h').value);
+            const name = row.querySelector('.p-name').value || '-';
+            const finishW = parseFloat(row.querySelector('.p-w').value);
+            const finishH = parseFloat(row.querySelector('.p-h').value);
             const q = parseInt(row.querySelector('.p-q').value);
-            if (w && h && q) {
+            const allowRotate = row.querySelector('.rotate-chk').checked;
+
+            // Bantlama Durumu: [Top, Right, Bottom, Left]
+            const banding = [
+                row.querySelector('.b-top').checked,
+                row.querySelector('.b-right').checked,
+                row.querySelector('.b-bottom').checked,
+                row.querySelector('.b-left').checked
+            ];
+
+            if (finishW && finishH && q) {
+                // KESİM ÖLÇÜSÜ HESABI:
+                // Eğer sol tarafta bant varsa, parça kesilirken bant kalınlığı kadar kısa kesilmeli.
+                // Kesim Genişliği = Bitmiş Genişlik - (Sol Bant + Sağ Bant)
+                let cutW = finishW;
+                if (banding[1]) cutW -= bandThick; // Sağ
+                if (banding[3]) cutW -= bandThick; // Sol
+
+                let cutH = finishH;
+                if (banding[0]) cutH -= bandThick; // Üst
+                if (banding[2]) cutH -= bandThick; // Alt
+
                 for (let i = 0; i < q; i++) {
-                    allBlocks.push({ w: w + kerf, h: h + kerf, realW: w, realH: h, fit: null });
+                    blocks.push({
+                        name: name,
+                        finishW: finishW,
+                        finishH: finishH,
+                        cw: cutW + kerf, // Algoritma için bıçak payı ekle
+                        ch: cutH + kerf,
+                        realCutW: cutW, // Çizim için net kesim ölçüsü
+                        realCutH: cutH,
+                        allowRotate: allowRotate,
+                        banding: banding,
+                        fit: null
+                    });
                 }
             }
         });
 
-        if (allBlocks.length === 0 || stockW === 0 || stockH === 0) {
-            alert("Lütfen bilgileri eksiksiz girin.");
-            return;
-        }
+        if (blocks.length === 0) { alert('Parça listesi boş!'); return; }
 
+        // 3. Optimizasyon Döngüsü
         let sheets = [];
-        let safetyLoop = 0;
+        let safety = 0;
 
-        while (allBlocks.some(b => !b.fit) && safetyLoop < 100) {
+        while (blocks.some(b => !b.fit) && safety < 500) {
             const packer = new GuillotinePacker(stockW, stockH);
-            packer.fit(allBlocks);
-            if (packer.placedBlocks.length > 0) sheets.push(packer);
-            else break;
-            safetyLoop++;
+            packer.fit(blocks);
+
+            if (packer.placedBlocks.length > 0) {
+                sheets.push(packer);
+            } else {
+                // Kalanlar sığmıyor demektir
+                break;
+            }
+            safety++;
         }
 
-        // Global değişkene kaydet (PDF için)
-        lastCalculatedSheets = sheets;
+        // 4. Sonuçları Kaydet
+        projectState.sheets = sheets;
+        projectState.blocks = blocks;
+        projectState.settings = { stockW, stockH, kerf, bandThick };
 
-        // İstatistik
-        let totalUsedArea = 0;
-        sheets.forEach(sheet => {
-            sheet.placedBlocks.forEach(b => totalUsedArea += b.realW * b.realH);
-        });
-        const totalSheetArea = sheets.length * (stockW * stockH);
-        const efficiency = totalSheetArea > 0 ? (totalUsedArea / totalSheetArea) * 100 : 0;
+        // 5. İstatistikler & Maliyet
+        calculateStats(sheets, stockW, stockH, sheetPrice, cutPrice);
 
-        document.getElementById('total-sheets').innerText = sheets.length;
-        document.getElementById('efficiency-rate').innerText = "%" + efficiency.toFixed(1);
-        document.getElementById('waste-rate').innerText = "%" + (100 - efficiency).toFixed(1);
+        // 6. Artan Parçalar
+        listOffcuts(sheets);
 
-        const unplacedCount = allBlocks.filter(b => !b.fit).length;
-        if (unplacedCount > 0) alert(`${unplacedCount} adet parça sığmadı!`);
+        // 7. Butonları Aç
+        dom.pdfBtn.style.display = 'inline-block';
+        dom.labelBtn.style.display = 'inline-block';
 
-        // PDF Butonunu göster
-        pdfBtn.style.display = 'block';
-
-        drawAllSheets(stockW, stockH, sheets);
+        // 8. Çizim
+        drawResults(stockW, stockH, sheets);
     }
 
-    // --- EKRAN ÇİZİMİ ---
-    function drawAllSheets(stockW, stockH, sheets) {
-        const GAP = 50;
+    function calculateStats(sheets, sw, sh, sPrice, cPrice) {
+        let totalArea = sheets.length * sw * sh;
+        let usedArea = 0;
+        let totalCutLength = 0; // Metre tül
+
+        sheets.forEach(sheet => {
+            sheet.placedBlocks.forEach(b => {
+                usedArea += b.realCutW * b.realCutH;
+                // Kesim uzunluğu (Çevre / 2 + ortak kenar mantığı karmaşık, basitçe çevre alalım)
+                totalCutLength += (b.realCutW + b.realCutH) * 2;
+            });
+        });
+
+        const eff = totalArea > 0 ? (usedArea / totalArea) * 100 : 0;
+        const totalCutMeter = totalCutLength / 1000; // mm -> m
+
+        // Maliyet: Plaka + Kesim
+        const cost = (sheets.length * sPrice) + (totalCutMeter * cPrice);
+
+        dom.stats.sheets.innerText = sheets.length;
+        dom.stats.efficiency.innerText = '%' + eff.toFixed(1);
+        dom.stats.cost.innerText = cost.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        dom.stats.cutLen.innerText = totalCutMeter.toFixed(1) + ' m';
+    }
+
+    function listOffcuts(sheets) {
+        dom.offcutsList.innerHTML = '';
+        let count = 0;
+        sheets.forEach((sheet, idx) => {
+            sheet.freeRectangles.forEach(r => {
+                // Sadece 300x300 mm'den büyükleri göster (Filtre)
+                if (r.w > 300 && r.h > 300) {
+                    const tag = document.createElement('div');
+                    tag.className = 'offcut-tag';
+                    tag.innerText = `P${idx + 1}: ${Math.round(r.w)}x${Math.round(r.h)}`;
+                    dom.offcutsList.appendChild(tag);
+                    count++;
+                }
+            });
+        });
+        if (count === 0) dom.offcutsList.innerHTML = '<span>Kullanılabilir büyük parça yok.</span>';
+    }
+
+    // --- ÇİZİM ---
+    function drawResults(stockW, stockH, sheets) {
+        const GAP = 40;
         const wrapper = document.querySelector('.canvas-wrapper');
-        const availH = wrapper.clientHeight - 40;
+        const availH = wrapper.clientHeight - 60;
 
         let scale = availH / stockH;
-        if (scale < 0.1) scale = 0.1;
+        if (scale < 0.15) scale = 0.15; // Min zoom
 
-        const totalW = (stockW * scale * sheets.length) + (GAP * (sheets.length - 1)) + 100;
+        const totalW = (stockW * scale * sheets.length) + (GAP * sheets.length) + 100;
+        dom.canvas.width = totalW;
+        dom.canvas.height = (stockH * scale) + 80;
 
-        canvas.width = totalW;
-        canvas.height = (stockH * scale) + 60;
+        const ctx = dom.ctx;
+        ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        sheets.forEach((sheet, i) => {
+            const startX = i * (stockW * scale + GAP) + 20;
+            const startY = 50;
 
-        sheets.forEach((sheet, index) => {
-            const startX = index * (stockW * scale + GAP) + 20;
-            const startY = 40;
+            // Plaka Başlık
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText(`${i + 1}. Plaka (${stockW}x${stockH})`, startX, 30);
 
-            ctx.fillStyle = '#333';
-            ctx.font = 'bold 16px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText(`${index + 1}. Plaka (MdfKesim)`, startX, 25);
-
+            // Plaka
             ctx.fillStyle = '#e2c799';
             ctx.fillRect(startX, startY, stockW * scale, stockH * scale);
             ctx.strokeStyle = '#8d5a2a';
             ctx.lineWidth = 2;
             ctx.strokeRect(startX, startY, stockW * scale, stockH * scale);
 
-            sheet.placedBlocks.forEach(block => {
-                const x = startX + (block.fit.x * scale);
-                const y = startY + (block.fit.y * scale);
+            // Parçalar
+            sheet.placedBlocks.forEach(b => {
+                const x = startX + (b.fit.x * scale);
+                const y = startY + (b.fit.y * scale);
 
-                let drawW = (block.fit.rotated ? block.realH : block.realW) * scale;
-                let drawH = (block.fit.rotated ? block.realW : block.realH) * scale;
+                // Döndürülmüşse boyutları çevir (Çizim için)
+                let dw = (b.fit.rotated ? b.realCutH : b.realCutW) * scale;
+                let dh = (b.fit.rotated ? b.realCutW : b.realCutH) * scale;
 
-                const dimKey = Math.min(block.realW, block.realH) + 'x' + Math.max(block.realW, block.realH);
-                ctx.fillStyle = getColorForDimension(dimKey);
-                ctx.fillRect(x, y, drawW, drawH);
+                // Renk (Adına veya boyutuna göre)
+                ctx.fillStyle = getColor(b.finishW, b.finishH);
+                ctx.fillRect(x, y, dw, dh);
                 ctx.strokeStyle = '#444';
                 ctx.lineWidth = 1;
-                ctx.strokeRect(x, y, drawW, drawH);
+                ctx.strokeRect(x, y, dw, dh);
 
-                if (drawW > 20 && drawH > 14) {
+                // Bantlama Göstergesi (Kırmızı Çizgiler)
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#dc2626'; // Kırmızı bant rengi
+                ctx.beginPath();
+
+                // Bant sıralaması [Top, Right, Bottom, Left] ama rotated ise yönler değişir!
+                let bands = [...b.banding];
+                if (b.fit.rotated) {
+                    // 90 derece dönüşte: Top->Right, Right->Bottom, Bottom->Left, Left->Top
+                    bands = [b.banding[3], b.banding[0], b.banding[1], b.banding[2]];
+                }
+
+                if (bands[0]) { ctx.moveTo(x, y); ctx.lineTo(x + dw, y); } // Top
+                if (bands[1]) { ctx.moveTo(x + dw, y); ctx.lineTo(x + dw, y + dh); } // Right
+                if (bands[2]) { ctx.moveTo(x, y + dh); ctx.lineTo(x + dw, y + dh); } // Bottom
+                if (bands[3]) { ctx.moveTo(x, y); ctx.lineTo(x, y + dh); } // Left
+                ctx.stroke();
+
+                // Yazı
+                if (dw > 30 && dh > 20) {
                     ctx.fillStyle = '#000';
                     ctx.font = '10px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    const text = block.fit.rotated
-                        ? `${block.realW}x${block.realH}`
-                        : `${block.realW}x${block.realH}`;
-                    ctx.fillText(text, x + drawW / 2, y + drawH / 2);
+                    const dimText = b.fit.rotated
+                        ? `${b.finishW}x${b.finishH} (R)`
+                        : `${b.finishW}x${b.finishH}`;
+
+                    ctx.fillText(b.name.substring(0, 10), x + dw / 2, y + dh / 2 - 6);
+                    ctx.font = 'bold 10px Arial';
+                    ctx.fillText(dimText, x + dw / 2, y + dh / 2 + 6);
                 }
             });
         });
     }
 
-    // --- PDF OLUŞTURMA FONKSİYONU ---
-    async function generatePDF() {
-        if (!lastCalculatedSheets || lastCalculatedSheets.length === 0) return;
+    function getColor(w, h) {
+        const key = Math.min(w, h) + 'x' + Math.max(w, h);
+        if (!colorMap[key]) {
+            colorMap[key] = `hsl(${Math.random() * 360}, 70%, 85%)`;
+        }
+        return colorMap[key];
+    }
 
+    // --- PDF RAPOR ---
+    function generatePDF() {
         const { jsPDF } = window.jspdf;
-        // PDF dökümanı oluştur (Yatay - Landscape)
         const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+        const sheets = projectState.sheets;
+        const sw = projectState.settings.stockW;
+        const sh = projectState.settings.stockH;
 
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
+        sheets.forEach((sheet, i) => {
+            if (i > 0) doc.addPage();
 
-        // Geçici bir canvas oluştur (Yüksek çözünürlük için)
-        const tempCanvas = document.createElement('canvas');
-        const tCtx = tempCanvas.getContext('2d');
+            // Başlık
+            doc.setFontSize(16);
+            doc.text(`Kesim Planı - Plaka ${i + 1}`, 10, 10);
 
-        // Yüksek kalite için scale faktörü
-        const renderScale = 0.5; // Pixel/mm oranı (ayarlanabilir)
+            // Basit bir çizim (Canvas to Image yerine vektör çizim daha nettir ama zordur. 
+            // Burada basitlik için Canvas'ı resim olarak alacağız ama yüksek kalitede)
 
-        for (let i = 0; i < lastCalculatedSheets.length; i++) {
-            if (i > 0) doc.addPage(); // İlk sayfa hariç yeni sayfa ekle
+            // Geçici Canvas
+            const tCan = document.createElement('canvas');
+            const scale = 0.5; // pixel -> mm scale
+            tCan.width = sw * scale;
+            tCan.height = sh * scale;
+            const tCtx = tCan.getContext('2d');
 
-            const sheet = lastCalculatedSheets[i];
+            // Zemin
+            tCtx.fillStyle = 'white'; tCtx.fillRect(0, 0, tCan.width, tCan.height);
+            tCtx.strokeStyle = 'black'; tCtx.strokeRect(0, 0, tCan.width, tCan.height);
 
-            // Canvas'ı plaka boyutuna ayarla (Pixel cinsinden)
-            tempCanvas.width = lastStockW * renderScale;
-            tempCanvas.height = lastStockH * renderScale;
+            sheet.placedBlocks.forEach(b => {
+                const x = b.fit.x * scale;
+                const y = b.fit.y * scale;
+                const w = (b.fit.rotated ? b.realCutH : b.realCutW) * scale;
+                const h = (b.fit.rotated ? b.realCutW : b.realCutH) * scale;
 
-            // Temizle ve Zemin Çiz
-            tCtx.fillStyle = '#ffffff'; // Kağıt beyazı
-            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-            // Plaka Sınırları
-            tCtx.fillStyle = '#eee';
-            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-            tCtx.strokeStyle = '#000';
-            tCtx.lineWidth = 2;
-            tCtx.strokeRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-            // Parçaları Çiz (Temp Canvas'a)
-            sheet.placedBlocks.forEach(block => {
-                const x = block.fit.x * renderScale;
-                const y = block.fit.y * renderScale;
-                const w = (block.fit.rotated ? block.realH : block.realW) * renderScale;
-                const h = (block.fit.rotated ? block.realW : block.realH) * renderScale;
-
-                // PDF'te gri tonlama daha şık durur ama renkli de olur
-                // tCtx.fillStyle = '#ddd'; 
-                const dimKey = Math.min(block.realW, block.realH) + 'x' + Math.max(block.realW, block.realH);
-                tCtx.fillStyle = getColorForDimension(dimKey);
-
+                tCtx.fillStyle = '#ddd';
                 tCtx.fillRect(x, y, w, h);
                 tCtx.strokeStyle = '#000';
-                tCtx.lineWidth = 2; // Çizgi kalınlığı
                 tCtx.strokeRect(x, y, w, h);
 
-                // Yazı
+                // İsim
                 tCtx.fillStyle = '#000';
-                tCtx.font = 'bold 24px Arial'; // PDF için büyük font
+                tCtx.font = '20px Arial';
                 tCtx.textAlign = 'center';
                 tCtx.textBaseline = 'middle';
-                const text = block.fit.rotated
-                    ? `${block.realW}x${block.realH} (R)`
-                    : `${block.realW}x${block.realH}`;
-
-                // Çok küçük parçalara yazma
-                if (w > 40 && h > 20) {
-                    tCtx.fillText(text, x + w / 2, y + h / 2);
+                if (w > 20 && h > 10) {
+                    tCtx.fillText(`${b.name}`, x + w / 2, y + h / 2);
                 }
             });
 
-            // Canvas'ı Resme Dönüştür
-            const imgData = tempCanvas.toDataURL('image/jpeg', 0.8);
+            const imgData = tCan.toDataURL('image/jpeg', 0.8);
+            // PDF'e sığdır
+            doc.addImage(imgData, 'JPEG', 10, 20, 270, (270 / sw) * sh);
+        });
 
-            // Resmi PDF'e sığdır (Aspect Ratio koruyarak)
-            const ratio = Math.min((pageWidth - 20) / lastStockW, (pageHeight - 20) / lastStockH);
-            const pdfW = lastStockW * ratio;
-            const pdfH = lastStockH * ratio;
-
-            const marginX = (pageWidth - pdfW) / 2;
-            const marginY = (pageHeight - pdfH) / 2;
-
-            doc.setFontSize(16);
-            doc.text(`MdfKesim Planı - Plaka ${i + 1}`, 10, 10);
-            doc.text(`Stok: ${lastStockW}x${lastStockH}mm`, 10, 18);
-
-            doc.addImage(imgData, 'JPEG', marginX, marginY + 5, pdfW, pdfH);
-        }
-
-        // İndir
-        doc.save('MdfKesim-Planlari.pdf');
+        doc.save('MdfKesim_Plan.pdf');
     }
 
-    function getColorForDimension(key) {
-        if (!colorMap[key]) {
-            const hue = Math.floor(Math.random() * 360);
-            colorMap[key] = `hsl(${hue}, 60%, 80%)`;
-        }
-        return colorMap[key];
+    // --- ETİKET YAZDIR (STICKER) ---
+    function generateLabels() {
+        const { jsPDF } = window.jspdf;
+        // A4 Kağıda 2 sütun x 4 satır etiket varsayalım (105mm x 74mm etiket)
+        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+        let col = 0;
+        let row = 0;
+        const w = 105;
+        const h = 74;
+
+        // Düzleştirilmiş parça listesi
+        let flatParts = [];
+        projectState.sheets.forEach((sheet, sheetIdx) => {
+            sheet.placedBlocks.forEach(b => {
+                flatParts.push({ ...b, sheetId: sheetIdx + 1 });
+            });
+        });
+
+        flatParts.forEach((part, i) => {
+            if (i > 0 && i % 8 === 0) {
+                doc.addPage();
+                col = 0; row = 0;
+            }
+
+            const x = col * w;
+            const y = row * h;
+
+            // Etiket Çerçeve
+            doc.setDrawColor(200);
+            doc.rect(x + 2, y + 2, w - 4, h - 4); // Marginli
+
+            // İçerik
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(part.name, x + 10, y + 15);
+
+            doc.setFontSize(22);
+            doc.text(`${part.finishW} x ${part.finishH}`, x + 10, y + 30);
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Plaka: ${part.sheetId}`, x + 10, y + 45);
+
+            // Bant Bilgisi
+            let bands = [];
+            if (part.banding[0]) bands.push('ÜST');
+            if (part.banding[1]) bands.push('SAĞ');
+            if (part.banding[2]) bands.push('ALT');
+            if (part.banding[3]) bands.push('SOL');
+
+            if (bands.length > 0) {
+                doc.setTextColor(200, 0, 0);
+                doc.text(`BANT: ${bands.join(' - ')}`, x + 10, y + 55);
+                doc.setTextColor(0);
+            }
+
+            // QR Kod Yeri (Simülasyon - Kutu)
+            doc.rect(x + w - 30, y + h - 30, 20, 20);
+            doc.setFontSize(6);
+            doc.text('QR', x + w - 23, y + h - 18);
+
+            // Koordinat artır
+            col++;
+            if (col > 1) { col = 0; row++; }
+        });
+
+        window.open(doc.output('bloburl'), '_blank');
     }
 });

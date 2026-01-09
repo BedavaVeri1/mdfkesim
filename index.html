@@ -4,10 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MdfKesim - Web Optimizasyon</title>
+    <title>MdfKesim Pro - Üretim Yönetimi</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -15,66 +17,112 @@
     <div class="app-container">
         <div class="sidebar">
             <div class="logo-area">
-                <h2><i class="fas fa-layer-group"></i> MdfKesim <span style="font-size:0.8rem; color:#888;">Pro</span>
-                </h2>
+                <h2><i class="fas fa-layer-group"></i> MdfKesim <span class="badge">PRO</span></h2>
+            </div>
+
+            <div class="panel-section toolbar">
+                <button id="save-btn" title="Projeyi Kaydet"><i class="fas fa-save"></i></button>
+                <button id="load-btn" title="Projeyi Yükle"><i class="fas fa-folder-open"></i></button>
+                <label for="excel-upload" class="btn-icon" title="Excel'den Yükle"><i
+                        class="fas fa-file-excel"></i></label>
+                <input type="file" id="excel-upload" accept=".xlsx, .xls" style="display:none;">
+                <button id="clear-btn" title="Temizle"><i class="fas fa-trash-alt"></i></button>
             </div>
 
             <div class="panel-section">
-                <h3>Stok Plaka Seçimi</h3>
-
+                <h3><i class="fas fa-ruler-combined"></i> Plaka & Maliyet</h3>
                 <div class="input-group">
-                    <select id="stdStockSelect"
-                        style="width:100%; padding:8px; border:1px solid #e2e8f0; border-radius:4px;">
-                        <option value="custom">Özel Ölçü Giriniz...</option>
-                        <option value="2100-2800">2100 x 2800 mm (MDF Standart)</option>
-                        <option value="1830-3660">1830 x 3660 mm (Büyük Ebat)</option>
-                        <option value="2440-2100">2440 x 2100 mm</option>
-                        <option value="2440-2800">2440 x 2800 mm</option>
+                    <select id="stdStockSelect">
+                        <option value="2100-2800">2100 x 2800 mm (Standart)</option>
+                        <option value="1830-3660">1830 x 3660 mm (Jumbo)</option>
+                        <option value="custom">Özel Ölçü...</option>
                     </select>
                 </div>
-
                 <div class="input-group">
-                    <input type="number" id="stockW" placeholder="Genişlik" value="2100">
+                    <input type="number" id="stockW" value="2100" placeholder="G">
                     <span>x</span>
-                    <input type="number" id="stockH" placeholder="Yükseklik" value="2800">
+                    <input type="number" id="stockH" value="2800" placeholder="Y">
                 </div>
-
-                <div class="input-group">
-                    <label>Bıçak Payı (mm):</label>
-                    <input type="number" id="kerf" value="3" style="width: 60px;">
+                <div class="settings-grid">
+                    <div>
+                        <label>Bıçak (mm)</label>
+                        <input type="number" id="kerf" value="3">
+                    </div>
+                    <div>
+                        <label>Bant (mm)</label>
+                        <input type="number" id="bandingThick" value="1" step="0.1">
+                    </div>
+                </div>
+                <div class="settings-grid" style="margin-top:5px;">
+                    <div>
+                        <label>Plaka ₺</label>
+                        <input type="number" id="sheetPrice" value="1500">
+                    </div>
+                    <div>
+                        <label>Kesim ₺/m</label>
+                        <input type="number" id="cutPrice" value="10">
+                    </div>
                 </div>
             </div>
 
             <div class="panel-section flex-grow">
-                <h3>Kesilecek Parçalar</h3>
+                <h3><i class="fas fa-list"></i> Parça Listesi</h3>
                 <div class="parts-header">
-                    <span>Gen.</span>
-                    <span>Yük.</span>
-                    <span>Adet</span>
-                    <span></span>
+                    <span style="flex:2">Adı</span>
+                    <span style="flex:1.5">En</span>
+                    <span style="flex:1.5">Boy</span>
+                    <span style="flex:1">Ad.</span>
+                    <span style="flex:0.5"><i class="fas fa-sync-alt" title="Döndürme"></i></span>
+                    <span style="flex:1" title="Kenar Bantlama">Bant</span>
+                    <span style="flex:0.5"></span>
                 </div>
                 <div id="parts-list">
                 </div>
-                <button id="add-part-btn" class="btn-secondary"><i class="fas fa-plus"></i> Parça Ekle</button>
+                <button id="add-part-btn" class="btn-secondary"><i class="fas fa-plus"></i> Manuel Ekle</button>
             </div>
 
             <div class="action-area">
                 <button id="calculate-btn" class="btn-primary">HESAPLA & ÇİZ</button>
-                <button id="download-pdf-btn" class="btn-danger" style="display: none;">
-                    <i class="fas fa-file-pdf"></i> PLANLARI PDF İNDİR
-                </button>
+                <div class="button-group">
+                    <button id="download-pdf-btn" class="btn-danger" style="display:none;">
+                        <i class="fas fa-file-pdf"></i> PLAN
+                    </button>
+                    <button id="print-label-btn" class="btn-warning" style="display:none;">
+                        <i class="fas fa-tags"></i> ETİKET
+                    </button>
+                </div>
             </div>
         </div>
 
         <div class="main-content">
             <div class="stats-bar">
-                <div class="stat-item"><span>Kullanılan Plaka:</span><strong id="total-sheets">0</strong></div>
-                <div class="stat-item"><span>Ortalama Verim:</span><strong id="efficiency-rate">%0</strong></div>
-                <div class="stat-item"><span>Toplam Fire:</span><strong id="waste-rate">%0</strong></div>
+                <div class="stat-item">
+                    <span>Plaka:</span>
+                    <strong id="total-sheets">0</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Verim:</span>
+                    <strong id="efficiency-rate">%0</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Toplam Maliyet:</span>
+                    <strong id="total-cost" style="color: green;">0 ₺</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Kesim Metrajı:</span>
+                    <strong id="total-cut-len">0 m</strong>
+                </div>
             </div>
 
             <div class="canvas-wrapper">
                 <canvas id="cutCanvas"></canvas>
+            </div>
+
+            <div class="offcuts-panel">
+                <h4><i class="fas fa-recycle"></i> Değerlendirilebilir Artan Parçalar (>30cm)</h4>
+                <div id="offcuts-list" class="offcuts-grid">
+                    <span>Hesaplama bekleniyor...</span>
+                </div>
             </div>
         </div>
     </div>
