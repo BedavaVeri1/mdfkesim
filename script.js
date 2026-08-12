@@ -513,18 +513,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.stroke();
 
                 // Yazı
-                if (dw > 30 && dh > 20) {
+                if (dw > 20 && dh > 20) {
+                    const textName = b.name.substring(0, 10);
+                    const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH} (R)` : `${b.finishW}x${b.finishH}`;
+
+                    ctx.save();
+                    ctx.translate(x + dw / 2, y + dh / 2);
+                    
+                    let drawTextW = dw;
+                    
+                    // Dikey dikdörtgense yazıyı yatay olacak şekilde döndür
+                    if (dh > dw * 1.2) {
+                        ctx.rotate(-Math.PI / 2);
+                        drawTextW = dh;
+                    }
+
                     ctx.fillStyle = '#0f172a';
-                    ctx.font = '10px "Inter", Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    const dimText = b.fit.rotated
-                        ? `${b.finishW}x${b.finishH} (R)`
-                        : `${b.finishW}x${b.finishH}`;
 
-                    ctx.fillText(b.name.substring(0, 10), x + dw / 2, y + dh / 2 - 6);
-                    ctx.font = 'bold 10px "Inter", Arial';
-                    ctx.fillText(dimText, x + dw / 2, y + dh / 2 + 6);
+                    let fontSize = 10;
+                    ctx.font = `${fontSize}px "Inter", Arial`;
+                    while (ctx.measureText(textName).width > drawTextW - 4 && fontSize > 6) {
+                        fontSize -= 1;
+                        ctx.font = `${fontSize}px "Inter", Arial`;
+                    }
+                    ctx.fillText(textName, 0, -fontSize/2 - 1);
+
+                    let dimFontSize = 10;
+                    ctx.font = `bold ${dimFontSize}px "Inter", Arial`;
+                    while (ctx.measureText(dimText).width > drawTextW - 4 && dimFontSize > 6) {
+                        dimFontSize -= 1;
+                        ctx.font = `bold ${dimFontSize}px "Inter", Arial`;
+                    }
+                    ctx.fillText(dimText, 0, fontSize/2 + 3);
+
+                    ctx.restore();
                 }
             });
         });

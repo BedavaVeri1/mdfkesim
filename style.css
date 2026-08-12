@@ -701,3 +701,48 @@ input[type="number"] {
     box-shadow: var(--shadow-sm);
     background: #a7f3d0;
 }
+
+/* --- RESPONSIVE MOBILE APP FEEL --- */
+@media (max-width: 850px) {
+    body {
+        overflow-y: auto;
+    }
+    .app-container {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+        padding: 0;
+        gap: 0;
+    }
+    
+    .sidebar {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid var(--border-light);
+        box-shadow: none;
+    }
+    
+    .main-content {
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        background: var(--bg-app);
+    }
+    
+    .stats-bar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #parts-list {
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+    
+    /* Mobilde girdi alanlarının ezilmesini önlemek için yatay kaydırmaya zorlar */
+    .parts-header, .part-row {
+        min-width: 450px; 
+    }
+}
