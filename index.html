@@ -21,16 +21,12 @@
             </div>
 
             <div class="panel-section toolbar">
-                <button id="save-btn" title="Projeyi Kaydet"><i class="fas fa-save"></i></button>
-                <button id="load-btn" title="Projeyi Yükle"><i class="fas fa-folder-open"></i></button>
-
-                <button id="dl-template-btn" title="Örnek Excel Şablonu İndir"><i class="fas fa-file-csv"></i></button>
-
-                <label for="excel-upload" class="btn-icon" title="Excel Dosyası Yükle"><i
-                        class="fas fa-file-upload"></i></label>
+                <button id="save-btn" data-tooltip="Projeyi Kaydet"><i class="fas fa-save"></i></button>
+                <button id="load-btn" data-tooltip="Projeyi Yükle"><i class="fas fa-folder-open"></i></button>
+                <button id="dl-template-btn" data-tooltip="Örnek Excel Şablonu"><i class="fas fa-file-csv"></i></button>
+                <label for="excel-upload" class="btn-icon" data-tooltip="Excel Dosyası Yükle"><i class="fas fa-file-upload"></i></label>
                 <input type="file" id="excel-upload" accept=".xlsx, .xls" style="display:none;">
-
-                <button id="clear-btn" title="Listeyi Temizle"><i class="fas fa-trash-alt"></i></button>
+                <button id="clear-btn" data-tooltip="Listeyi Temizle"><i class="fas fa-trash-alt"></i></button>
             </div>
 
             <div class="panel-section">

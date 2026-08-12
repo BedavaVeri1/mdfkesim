@@ -567,12 +567,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 tCtx.fillStyle = '#0f172a';
                 tCtx.textAlign = 'center';
                 tCtx.textBaseline = 'middle';
-                if (w > 60 && h > 40) {
-                    tCtx.font = 'bold 24px "Inter", sans-serif';
-                    tCtx.fillText(b.name.substring(0, 12), x + w / 2, y + h / 2 - 14);
-                    tCtx.font = '20px "Inter", sans-serif';
+                
+                if (w > 20 && h > 20) {
+                    const textName = b.name.substring(0, 12);
                     const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH} (R)` : `${b.finishW}x${b.finishH}`;
-                    tCtx.fillText(dimText, x + w / 2, y + h / 2 + 14);
+                    
+                    tCtx.save();
+                    tCtx.translate(x + w / 2, y + h / 2);
+                    
+                    let drawW = w;
+                    
+                    // Eğer dikey bir dikdörtgense (yüksekliği genişliğinden bariz büyükse) yazıyı dik konuma getir
+                    if (h > w * 1.2) {
+                        tCtx.rotate(-Math.PI / 2);
+                        drawW = h; // Çizim genişliği artık orijinal yükseklik oldu
+                    }
+                    
+                    // Metin boyutunu alana göre küçülterek sığdır
+                    let fontSize = 24;
+                    tCtx.font = `bold ${fontSize}px "Inter", sans-serif`;
+                    while (tCtx.measureText(textName).width > drawW - 10 && fontSize > 8) {
+                        fontSize -= 2;
+                        tCtx.font = `bold ${fontSize}px "Inter", sans-serif`;
+                    }
+                    tCtx.fillText(textName, 0, -fontSize/2);
+                    
+                    // Ölçü metnini sığdır
+                    let dimFontSize = 20;
+                    tCtx.font = `${dimFontSize}px "Inter", sans-serif`;
+                    while (tCtx.measureText(dimText).width > drawW - 10 && dimFontSize > 8) {
+                        dimFontSize -= 2;
+                        tCtx.font = `${dimFontSize}px "Inter", sans-serif`;
+                    }
+                    tCtx.fillText(dimText, 0, fontSize/2 + 2);
+                    
+                    tCtx.restore();
                 }
             });
 
