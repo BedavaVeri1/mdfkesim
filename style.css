@@ -60,7 +60,7 @@ body {
 
 /* --- GLASSMORPHISM SIDEBAR --- */
 .sidebar {
-    width: 400px;
+    width: 480px; /* Parça listesi genişlesin diye artırıldı */
     background: var(--bg-sidebar);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -297,6 +297,16 @@ label {
     color: var(--dark);
     font-weight: 600;
     transition: 0.2s;
+}
+
+/* Sayı girişlerindeki gereksiz okları (spinner) gizleyelim ki yer açılsın */
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+input[type="number"] {
+    -moz-appearance: textfield;
 }
 
 .part-row input:focus {

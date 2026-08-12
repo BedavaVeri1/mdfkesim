@@ -42,8 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let colorMap = {}; // Renk önbelleği
 
     // --- BAŞLANGIÇ ---
-    addPartRow({ name: "Örnek Kapak", w: 720, h: 450, q: 2 });
-    addPartRow({ name: "Örnek Raf", w: 450, h: 300, q: 3 });
+    addPartRow();
     setupEventListeners();
 
     // --- EVENT LISTENERS KURULUMU ---
@@ -341,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if (blocks.length === 0) { alert('Parça listesi boş!'); return; }
+        if (blocks.length === 0) { alert('Hesaplanacak geçerli bir parça bulunamadı. Lütfen En ve Boy ölçülerini girdiğinizden emin olun!'); return; }
 
         // 3. Optimizasyon Döngüsü
         let sheets = [];
