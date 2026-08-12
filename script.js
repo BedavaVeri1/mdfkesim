@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.excelInput.value = '';
     }
 
-    // --- PROJE KAYDET / YÜKLE ---
+    // --- PROJE KAYDET / YÜKLE (DOSYA OLARAK) ---
     function saveProject() {
         const parts = [];
         document.querySelectorAll('.part-row').forEach(row => {
@@ -188,39 +188,62 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        localStorage.setItem('mdfProject', JSON.stringify(project));
-        alert('Proje tarayıcıya kaydedildi!');
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "MdfKesim-Proje.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        alert('Proje (.json) formatında cihazınıza indirildi!');
     }
 
     function loadProject() {
-        const data = localStorage.getItem('mdfProject');
-        if (!data) { alert('Kaydedilmiş proje bulunamadı.'); return; }
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-        const project = JSON.parse(data);
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const project = JSON.parse(event.target.result);
 
-        // Ayarları Yükle
-        dom.inputs.stockW.value = project.settings.stockW;
-        dom.inputs.stockH.value = project.settings.stockH;
-        
-        // Ölçülerin tipine göre arayüzü güncelle
-        const standardVal = `${project.settings.stockW}-${project.settings.stockH}`;
-        const optionExists = Array.from(dom.stdStockSelect.options).some(opt => opt.value === standardVal);
-        const customStockGroup = document.getElementById('custom-stock-group');
-        
-        if (optionExists) {
-            dom.stdStockSelect.value = standardVal;
-            customStockGroup.style.display = 'none';
-        } else {
-            dom.stdStockSelect.value = 'custom';
-            customStockGroup.style.display = 'flex';
-        }
-        dom.inputs.kerf.value = project.settings.kerf;
-        dom.inputs.banding.value = project.settings.banding;
+                    // Ayarları Yükle
+                    dom.inputs.stockW.value = project.settings.stockW || 2100;
+                    dom.inputs.stockH.value = project.settings.stockH || 2800;
+                    
+                    // Ölçülerin tipine göre arayüzü güncelle
+                    const standardVal = `${dom.inputs.stockW.value}-${dom.inputs.stockH.value}`;
+                    const optionExists = Array.from(dom.stdStockSelect.options).some(opt => opt.value === standardVal);
+                    const customStockGroup = document.getElementById('custom-stock-group');
+                    
+                    if (optionExists) {
+                        dom.stdStockSelect.value = standardVal;
+                        customStockGroup.style.display = 'none';
+                    } else {
+                        dom.stdStockSelect.value = 'custom';
+                        customStockGroup.style.display = 'flex';
+                    }
+                    
+                    dom.inputs.kerf.value = project.settings.kerf || 3;
+                    dom.inputs.banding.value = project.settings.banding || 1;
 
-        // Parçaları Yükle
-        dom.partsList.innerHTML = '';
-        project.parts.forEach(p => addPartRow(p));
-        alert('Proje yüklendi.');
+                    // Parçaları Yükle
+                    dom.partsList.innerHTML = '';
+                    if (project.parts && project.parts.length > 0) {
+                        project.parts.forEach(p => addPartRow(p));
+                    }
+                    alert('Proje dosyası başarıyla yüklendi!');
+                } catch (err) {
+                    alert('Geçersiz dosya formatı. Lütfen MdfKesim-Proje.json dosyasını seçtiğinizden emin olun.');
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
     }
 
     // --- HESAPLAMA MOTORU (GUILLOTINE PACKER) ---
