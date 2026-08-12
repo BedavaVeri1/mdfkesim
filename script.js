@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- PROJE KAYDET / YÜKLE (DOSYA OLARAK) ---
-    function saveProject() {
+    async function saveProject() {
         let projectName = prompt("Lütfen projeniz için bir isim girin (Müşteri veya İş Adı):", "MdfKesim-Siparis");
         
         // Eğer kullanıcı İptal'e basarsa kaydetmeyi durdur
@@ -201,14 +201,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project));
+        const jsonString = JSON.stringify(project);
+        const fileName = projectName + ".json";
+
+        // Modern Mobil/PWA Paylaşım Ekranı (Eğer destekliyorsa)
+        if (navigator.share && navigator.canShare) {
+            try {
+                const file = new File([jsonString], fileName, { type: 'application/json' });
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: fileName,
+                        text: 'MdfKesim Proje Dosyası',
+                        files: [file]
+                    });
+                    return; // Başarıyla paylaşıldı/kaydedildi
+                }
+            } catch (err) {
+                console.log("Paylaşım iptal edildi veya desteklenmiyor:", err);
+            }
+        }
+
+        // Desteklemiyorsa (PC vb.) klasik indirme yöntemi
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", projectName + ".json");
+        downloadAnchorNode.setAttribute("download", fileName);
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
-        alert('Proje (.json) formatında "' + projectName + '.json" adıyla cihazınıza indirildi!');
+        
+        // Sadece klasik yöntemde uyarı ver, share api kendi arayüzünü açıyor zaten
+        alert('Proje "' + fileName + '" adıyla indirilmeye çalışıldı. (İnmediyse tarayıcınız veya iOS sürümünüz engelliyor olabilir).');
     }
 
     function loadProject() {
