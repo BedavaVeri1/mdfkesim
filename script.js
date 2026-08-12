@@ -442,14 +442,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const startY = 50;
 
             // Plaka Başlık
-            ctx.fillStyle = '#1e293b';
-            ctx.font = 'bold 14px Arial';
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 14px "Outfit", Arial';
             ctx.fillText(`${i + 1}. Plaka (${stockW}x${stockH})`, startX, 30);
 
             // Plaka
-            ctx.fillStyle = '#e2c799';
+            ctx.fillStyle = '#f8fafc';
             ctx.fillRect(startX, startY, stockW * scale, stockH * scale);
-            ctx.strokeStyle = '#8d5a2a';
+            ctx.strokeStyle = '#cbd5e1';
             ctx.lineWidth = 2;
             ctx.strokeRect(startX, startY, stockW * scale, stockH * scale);
 
@@ -508,7 +508,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function getColor(w, h) {
         const key = Math.min(w, h) + 'x' + Math.max(w, h);
         if (!colorMap[key]) {
-            colorMap[key] = `hsl(${Math.random() * 360}, 70%, 85%)`;
+            // Indigo, Blue, Emerald, Violet tones
+            const hues = [220, 230, 250, 200, 160]; 
+            const randomHue = hues[Math.floor(Math.random() * hues.length)] + (Math.random() * 20 - 10);
+            colorMap[key] = `hsl(${randomHue}, 70%, 85%)`;
         }
         return colorMap[key];
     }
