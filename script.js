@@ -161,6 +161,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- PROJE KAYDET / YÜKLE (DOSYA OLARAK) ---
     function saveProject() {
+        let projectName = prompt("Lütfen projeniz için bir isim girin (Müşteri veya İş Adı):", "MdfKesim-Siparis");
+        
+        // Eğer kullanıcı İptal'e basarsa kaydetmeyi durdur
+        if (projectName === null) return; 
+        
+        // Eğer boş bırakırsa varsayılan bir isim ver
+        if (projectName.trim() === "") {
+            projectName = "MdfKesim-Proje";
+        }
+
+        // Dosya isminde sorun çıkarabilecek yasadışı karakterleri temizle
+        projectName = projectName.replace(/[^a-zA-Z0-9 ğüşöçİĞÜŞÖÇ_-]/g, "_");
+
         const parts = [];
         document.querySelectorAll('.part-row').forEach(row => {
             parts.push({
@@ -191,11 +204,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project));
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "MdfKesim-Proje.json");
+        downloadAnchorNode.setAttribute("download", projectName + ".json");
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
-        alert('Proje (.json) formatında cihazınıza indirildi!');
+        alert('Proje (.json) formatında "' + projectName + '.json" adıyla cihazınıza indirildi!');
     }
 
     function loadProject() {
@@ -610,13 +623,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let colorIndex = 0;
+    // Renklerin birbirine karışmaması için zıt renk tonları (Gökkuşağı dağılımı)
+    const distinctHues = [0, 200, 60, 280, 120, 30, 240, 300, 160, 330, 90, 210];
+    
     function getColor(w, h) {
         const key = Math.min(w, h) + 'x' + Math.max(w, h);
         if (!colorMap[key]) {
-            // Indigo, Blue, Emerald, Violet tones
-            const hues = [220, 230, 250, 200, 160]; 
-            const randomHue = hues[Math.floor(Math.random() * hues.length)] + (Math.random() * 20 - 10);
-            colorMap[key] = `hsl(${randomHue}, 70%, 85%)`;
+            const hue = distinctHues[colorIndex % distinctHues.length];
+            colorIndex++;
+            // Renkleri ayırt edilebilir ama yazının okunmasını engellemeyecek softlukta (pastelleştirilmiş) yap
+            colorMap[key] = `hsl(${hue}, 75%, 82%)`;
         }
         return colorMap[key];
     }
@@ -654,7 +671,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const w = (b.fit.rotated ? b.realCutH : b.realCutW) * scale;
                 const h = (b.fit.rotated ? b.realCutW : b.realCutH) * scale;
 
-                tCtx.fillStyle = '#cbd5e1';
+                // Rengi getColor fonksiyonundan çek
+                tCtx.fillStyle = getColor(b.finishW, b.finishH);
                 tCtx.fillRect(x, y, w, h);
                 tCtx.strokeStyle = '#1e293b';
                 tCtx.lineWidth = 2;
