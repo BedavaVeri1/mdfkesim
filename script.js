@@ -42,7 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let colorMap = {}; // Renk önbelleği
 
     // --- BAŞLANGIÇ ---
-    addPartRow(); // İlk satır
+    addPartRow({ name: "Örnek Kapak", w: 720, h: 450, q: 2 });
+    addPartRow({ name: "Örnek Raf", w: 450, h: 300, q: 3 });
     setupEventListeners();
 
     // --- EVENT LISTENERS KURULUMU ---
