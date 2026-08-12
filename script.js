@@ -47,7 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS KURULUMU ---
     function setupEventListeners() {
-        dom.addPartBtn.addEventListener('click', () => addPartRow());
+        dom.addPartBtn.addEventListener('click', () => {
+            addPartRow();
+            setTimeout(() => {
+                const rows = document.querySelectorAll('.part-row');
+                if (rows.length > 0) {
+                    rows[rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 50);
+        });
         dom.calculateBtn.addEventListener('click', runOptimization);
         dom.pdfBtn.addEventListener('click', generatePDF);
         dom.labelBtn.addEventListener('click', generateLabels);

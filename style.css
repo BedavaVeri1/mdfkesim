@@ -741,8 +741,8 @@ input[type="number"] {
         padding-bottom: 10px;
     }
     
-    /* Mobilde girdi alanlarının ezilmesini önlemek için yatay kaydırmaya zorlar */
+    /* Mobilde girdi alanlarının ezilmesini önlemek için yatay kaydırmaya zorlar ama ekrana tam sığacak ölçüye çeker */
     .parts-header, .part-row {
-        min-width: 450px; 
+        min-width: 340px; 
     }
 }
