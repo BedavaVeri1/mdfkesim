@@ -237,7 +237,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadProject() {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.json';
+        // iOS ve bazı Android cihazlarda .json uzantısı katı filtrelendiğinde 
+        // indirilen dosya seçilemez (soluk) olabiliyor. Bu yüzden tüm dosyalara izin veriyoruz, 
+        // arka planda sadece geçerli json'ları kabul edeceğiz.
+        input.accept = '*/*'; 
         input.onchange = e => {
             const file = e.target.files[0];
             if (!file) return;
