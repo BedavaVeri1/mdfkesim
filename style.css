@@ -60,9 +60,9 @@ body {
 
 /* --- GLASSMORPHISM SIDEBAR --- */
 .sidebar {
-    width: 35%;
-    min-width: 420px;
-    max-width: 480px;
+    width: 40%;
+    min-width: 480px;
+    max-width: 550px;
     flex-shrink: 0;
     background: var(--bg-sidebar);
     backdrop-filter: blur(16px);
@@ -238,7 +238,7 @@ label {
 .parts-header {
     display: grid;
     grid-template-columns: 2fr 1.2fr 1.2fr 0.8fr 30px 32px 30px;
-    gap: 8px;
+    gap: 4px;
     align-items: center;
     font-size: 0.7rem;
     font-weight: 700;
@@ -274,7 +274,7 @@ label {
 .part-row {
     display: grid;
     grid-template-columns: 2fr 1.2fr 1.2fr 0.8fr 30px 32px 30px;
-    gap: 8px;
+    gap: 4px;
     align-items: center;
     background: rgba(255, 255, 255, 0.7);
     padding: 8px 10px;
@@ -294,6 +294,7 @@ label {
 .part-row input[type="text"],
 .part-row input[type="number"] {
     width: 100%;
+    min-width: 0; /* Inputların Grid içinde sıkışıp taşmasını engeller */
     padding: 6px 4px;
     border: none;
     background: transparent;

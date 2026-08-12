@@ -285,8 +285,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ANA ÇALIŞTIRMA ---
     function runOptimization() {
         // 1. Ayarları Al
-        const stockW = parseFloat(dom.inputs.stockW.value);
-        const stockH = parseFloat(dom.inputs.stockH.value);
+        let stockW = parseFloat(dom.inputs.stockW.value);
+        let stockH = parseFloat(dom.inputs.stockH.value);
+        
+        // Çizimde uzun kenarın yatayda olması için ölçüleri çevir
+        if (stockH > stockW) {
+            let temp = stockW;
+            stockW = stockH;
+            stockH = temp;
+        }
+        
         const kerf = parseFloat(dom.inputs.kerf.value);
         const bandThick = parseFloat(dom.inputs.banding.value);
         const sheetPrice = parseFloat(dom.inputs.sheetPrice.value);
@@ -489,8 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Yazı
                 if (dw > 30 && dh > 20) {
-                    ctx.fillStyle = '#000';
-                    ctx.font = '10px Arial';
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = '10px "Inter", Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     const dimText = b.fit.rotated
@@ -498,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         : `${b.finishW}x${b.finishH}`;
 
                     ctx.fillText(b.name.substring(0, 10), x + dw / 2, y + dh / 2 - 6);
-                    ctx.font = 'bold 10px Arial';
+                    ctx.font = 'bold 10px "Inter", Arial';
                     ctx.fillText(dimText, x + dw / 2, y + dh / 2 + 6);
                 }
             });
@@ -528,22 +536,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (i > 0) doc.addPage();
 
             // Başlık
+            doc.setFont('helvetica', 'bold');
             doc.setFontSize(16);
-            doc.text(`Kesim Planı - Plaka ${i + 1}`, 10, 10);
+            doc.text(`Kesim Plani - Plaka ${i + 1}`, 10, 10);
 
-            // Basit bir çizim (Canvas to Image yerine vektör çizim daha nettir ama zordur. 
-            // Burada basitlik için Canvas'ı resim olarak alacağız ama yüksek kalitede)
-
-            // Geçici Canvas
+            // Geçici Canvas (Yüksek Kalite)
             const tCan = document.createElement('canvas');
-            const scale = 0.5; // pixel -> mm scale
+            const scale = 0.8; // Yüksek çözünürlük için scale artırıldı
             tCan.width = sw * scale;
             tCan.height = sh * scale;
             const tCtx = tCan.getContext('2d');
 
             // Zemin
             tCtx.fillStyle = 'white'; tCtx.fillRect(0, 0, tCan.width, tCan.height);
-            tCtx.strokeStyle = 'black'; tCtx.strokeRect(0, 0, tCan.width, tCan.height);
+            tCtx.strokeStyle = 'black'; tCtx.lineWidth = 4; tCtx.strokeRect(0, 0, tCan.width, tCan.height);
 
             sheet.placedBlocks.forEach(b => {
                 const x = b.fit.x * scale;
@@ -551,24 +557,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 const w = (b.fit.rotated ? b.realCutH : b.realCutW) * scale;
                 const h = (b.fit.rotated ? b.realCutW : b.realCutH) * scale;
 
-                tCtx.fillStyle = '#ddd';
+                tCtx.fillStyle = '#cbd5e1';
                 tCtx.fillRect(x, y, w, h);
-                tCtx.strokeStyle = '#000';
+                tCtx.strokeStyle = '#1e293b';
+                tCtx.lineWidth = 2;
                 tCtx.strokeRect(x, y, w, h);
 
-                // İsim
-                tCtx.fillStyle = '#000';
-                tCtx.font = '20px Arial';
+                // İsim ve Ölçüler
+                tCtx.fillStyle = '#0f172a';
                 tCtx.textAlign = 'center';
                 tCtx.textBaseline = 'middle';
-                if (w > 20 && h > 10) {
-                    tCtx.fillText(`${b.name}`, x + w / 2, y + h / 2);
+                if (w > 60 && h > 40) {
+                    tCtx.font = 'bold 24px "Inter", sans-serif';
+                    tCtx.fillText(b.name.substring(0, 12), x + w / 2, y + h / 2 - 14);
+                    tCtx.font = '20px "Inter", sans-serif';
+                    const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH} (R)` : `${b.finishW}x${b.finishH}`;
+                    tCtx.fillText(dimText, x + w / 2, y + h / 2 + 14);
                 }
             });
 
-            const imgData = tCan.toDataURL('image/jpeg', 0.8);
-            // PDF'e sığdır
-            doc.addImage(imgData, 'JPEG', 10, 20, 270, (270 / sw) * sh);
+            const imgData = tCan.toDataURL('image/jpeg', 0.9);
+            
+            // PDF'e tam sayfaya orantılı sığdırma
+            const maxWidth = 277; // A4 Genişlik - kenar boşlukları
+            const maxHeight = 190; // A4 Yükseklik - başlık ve boşluklar
+            let drawW = maxWidth;
+            let drawH = (maxWidth / sw) * sh;
+            
+            // Eğer hesaplanan yükseklik, sayfadan taşıyorsa yüksekliği kısıtla
+            if (drawH > maxHeight) {
+                drawH = maxHeight;
+                drawW = (maxHeight / sh) * sw;
+            }
+            
+            // Ortalama
+            const xOffset = 10 + (maxWidth - drawW) / 2;
+            doc.addImage(imgData, 'JPEG', xOffset, 15, drawW, drawH);
         });
 
         doc.save('MdfKesim_Plan.pdf');
