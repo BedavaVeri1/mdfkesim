@@ -513,41 +513,66 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.stroke();
 
                 // Yazı
-                if (dw > 20 && dh > 20) {
+                if (dw > 4 && dh > 4) {
                     const textName = b.name.substring(0, 10);
-                    const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH} (R)` : `${b.finishW}x${b.finishH}`;
+                    const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH}(R)` : `${b.finishW}x${b.finishH}`;
+                    const fullText = `${textName} ${dimText}`;
 
                     ctx.save();
                     ctx.translate(x + dw / 2, y + dh / 2);
                     
-                    let drawTextW = dw;
+                    let maxLen = dw;
+                    let maxThick = dh;
                     
                     // Dikey dikdörtgense yazıyı yatay olacak şekilde döndür
                     if (dh > dw * 1.2) {
                         ctx.rotate(-Math.PI / 2);
-                        drawTextW = dh;
+                        maxLen = dh;
+                        maxThick = dw;
                     }
 
                     ctx.fillStyle = '#0f172a';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
-                    let fontSize = 10;
-                    ctx.font = `${fontSize}px "Inter", Arial`;
-                    while (ctx.measureText(textName).width > drawTextW - 4 && fontSize > 6) {
-                        fontSize -= 1;
-                        ctx.font = `${fontSize}px "Inter", Arial`;
+                    // Parça 2 satır için çok ince ise (örn. 16px altı) tek satır çiz
+                    if (maxThick < 16) {
+                        let fSize = 10;
+                        ctx.font = `${fSize}px "Inter", Arial`;
+                        while (ctx.measureText(fullText).width > maxLen - 2 && fSize > 4) {
+                            fSize -= 0.5;
+                            ctx.font = `${fSize}px "Inter", Arial`;
+                        }
+                        if (fSize > maxThick - 1) fSize = Math.max(3, maxThick - 1);
+                        ctx.font = `${fSize}px "Inter", Arial`;
+                        ctx.fillText(fullText, 0, 0);
+                    } else {
+                        // İki satır çizim
+                        let fSize1 = 10;
+                        ctx.font = `bold ${fSize1}px "Inter", Arial`;
+                        while (ctx.measureText(textName).width > maxLen - 2 && fSize1 > 4) {
+                            fSize1 -= 0.5;
+                            ctx.font = `bold ${fSize1}px "Inter", Arial`;
+                        }
+                        let fSize2 = 10;
+                        ctx.font = `${fSize2}px "Inter", Arial`;
+                        while (ctx.measureText(dimText).width > maxLen - 2 && fSize2 > 4) {
+                            fSize2 -= 0.5;
+                            ctx.font = `${fSize2}px "Inter", Arial`;
+                        }
+                        
+                        let totalH = fSize1 + fSize2 + 2;
+                        if (totalH > maxThick) {
+                             let scaleF = (maxThick - 2) / totalH;
+                             fSize1 = Math.max(3, fSize1 * scaleF);
+                             fSize2 = Math.max(3, fSize2 * scaleF);
+                        }
+                        
+                        ctx.font = `bold ${fSize1}px "Inter", Arial`;
+                        ctx.fillText(textName, 0, -fSize1/2);
+                        ctx.font = `${fSize2}px "Inter", Arial`;
+                        ctx.fillText(dimText, 0, fSize2/2 + 2);
                     }
-                    ctx.fillText(textName, 0, -fontSize/2 - 1);
-
-                    let dimFontSize = 10;
-                    ctx.font = `bold ${dimFontSize}px "Inter", Arial`;
-                    while (ctx.measureText(dimText).width > drawTextW - 4 && dimFontSize > 6) {
-                        dimFontSize -= 1;
-                        ctx.font = `bold ${dimFontSize}px "Inter", Arial`;
-                    }
-                    ctx.fillText(dimText, 0, fontSize/2 + 3);
-
                     ctx.restore();
                 }
             });
@@ -609,39 +634,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 tCtx.textAlign = 'center';
                 tCtx.textBaseline = 'middle';
                 
-                if (w > 20 && h > 20) {
+                if (w > 4 && h > 4) {
                     const textName = b.name.substring(0, 12);
-                    const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH} (R)` : `${b.finishW}x${b.finishH}`;
+                    const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH}(R)` : `${b.finishW}x${b.finishH}`;
+                    const fullText = `${textName} ${dimText}`;
                     
                     tCtx.save();
                     tCtx.translate(x + w / 2, y + h / 2);
                     
-                    let drawW = w;
+                    let maxLen = w;
+                    let maxThick = h;
                     
-                    // Eğer dikey bir dikdörtgense (yüksekliği genişliğinden bariz büyükse) yazıyı dik konuma getir
                     if (h > w * 1.2) {
                         tCtx.rotate(-Math.PI / 2);
-                        drawW = h; // Çizim genişliği artık orijinal yükseklik oldu
+                        maxLen = h;
+                        maxThick = w;
                     }
                     
-                    // Metin boyutunu alana göre küçülterek sığdır
-                    let fontSize = 24;
-                    tCtx.font = `bold ${fontSize}px "Inter", sans-serif`;
-                    while (tCtx.measureText(textName).width > drawW - 10 && fontSize > 8) {
-                        fontSize -= 2;
-                        tCtx.font = `bold ${fontSize}px "Inter", sans-serif`;
+                    if (maxThick < 24) { // PDF çözünürlüğü yüksek olduğu için baraj daha büyük
+                        let fSize = 20;
+                        tCtx.font = `bold ${fSize}px "Inter", sans-serif`;
+                        while (tCtx.measureText(fullText).width > maxLen - 4 && fSize > 6) {
+                            fSize -= 1;
+                            tCtx.font = `bold ${fSize}px "Inter", sans-serif`;
+                        }
+                        if (fSize > maxThick - 2) fSize = Math.max(4, maxThick - 2);
+                        tCtx.font = `bold ${fSize}px "Inter", sans-serif`;
+                        tCtx.fillText(fullText, 0, 0);
+                    } else {
+                        let fSize1 = 24;
+                        tCtx.font = `bold ${fSize1}px "Inter", sans-serif`;
+                        while (tCtx.measureText(textName).width > maxLen - 4 && fSize1 > 6) {
+                            fSize1 -= 1;
+                            tCtx.font = `bold ${fSize1}px "Inter", sans-serif`;
+                        }
+                        
+                        let fSize2 = 20;
+                        tCtx.font = `${fSize2}px "Inter", sans-serif`;
+                        while (tCtx.measureText(dimText).width > maxLen - 4 && fSize2 > 6) {
+                            fSize2 -= 1;
+                            tCtx.font = `${fSize2}px "Inter", sans-serif`;
+                        }
+                        
+                        let totalH = fSize1 + fSize2 + 4;
+                        if (totalH > maxThick) {
+                             let scaleF = (maxThick - 4) / totalH;
+                             fSize1 = Math.max(5, fSize1 * scaleF);
+                             fSize2 = Math.max(5, fSize2 * scaleF);
+                        }
+                        
+                        tCtx.font = `bold ${fSize1}px "Inter", sans-serif`;
+                        tCtx.fillText(textName, 0, -fSize1/2);
+                        tCtx.font = `${fSize2}px "Inter", sans-serif`;
+                        tCtx.fillText(dimText, 0, fSize2/2 + 2);
                     }
-                    tCtx.fillText(textName, 0, -fontSize/2);
-                    
-                    // Ölçü metnini sığdır
-                    let dimFontSize = 20;
-                    tCtx.font = `${dimFontSize}px "Inter", sans-serif`;
-                    while (tCtx.measureText(dimText).width > drawW - 10 && dimFontSize > 8) {
-                        dimFontSize -= 2;
-                        tCtx.font = `${dimFontSize}px "Inter", sans-serif`;
-                    }
-                    tCtx.fillText(dimText, 0, fontSize/2 + 2);
-                    
                     tCtx.restore();
                 }
             });
