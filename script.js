@@ -63,11 +63,15 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.excelInput.addEventListener('change', handleExcelUpload);
 
         // Stok Seçimi
+        const customStockGroup = document.getElementById('custom-stock-group');
         dom.stdStockSelect.addEventListener('change', (e) => {
             if (e.target.value !== 'custom') {
                 const [w, h] = e.target.value.split('-');
                 dom.inputs.stockW.value = w;
                 dom.inputs.stockH.value = h;
+                customStockGroup.style.display = 'none';
+            } else {
+                customStockGroup.style.display = 'flex';
             }
         });
     }
@@ -189,6 +193,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ayarları Yükle
         dom.inputs.stockW.value = project.settings.stockW;
         dom.inputs.stockH.value = project.settings.stockH;
+        
+        // Ölçülerin tipine göre arayüzü güncelle
+        const standardVal = `${project.settings.stockW}-${project.settings.stockH}`;
+        const optionExists = Array.from(dom.stdStockSelect.options).some(opt => opt.value === standardVal);
+        const customStockGroup = document.getElementById('custom-stock-group');
+        
+        if (optionExists) {
+            dom.stdStockSelect.value = standardVal;
+            customStockGroup.style.display = 'none';
+        } else {
+            dom.stdStockSelect.value = 'custom';
+            customStockGroup.style.display = 'flex';
+        }
         dom.inputs.kerf.value = project.settings.kerf;
         dom.inputs.banding.value = project.settings.banding;
 

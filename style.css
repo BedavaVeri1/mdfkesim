@@ -184,7 +184,7 @@ body {
     font-family: 'Outfit', sans-serif;
     font-size: 0.95rem; /* Küçültüldü */
     color: var(--dark);
-    margin-bottom: 10px; /* Kısaltıldı */
+    margin-bottom: 14px; /* Başlık ile içerik arasına biraz daha nefes payı bırakıldı */
     font-weight: 700;
     display: flex;
     align-items: center;
