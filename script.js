@@ -909,62 +909,135 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(doc.output('bloburl'), '_blank');
     }
 
-    // --- HAZIR MODÜL SİHİRBAZI MANTIĞI ---
+    // --- MODÜLER SİHİRBAZ: BÖLÜM (SECTION) MANTIĞI ---
+    let sectionCount = 0;
+    
+    window.addSection = function() {
+        sectionCount++;
+        const container = document.getElementById('sections-container');
+        if (!container) return;
+        const sectionId = sectionCount;
+        
+        const sectionHtml = `
+            <div class="section-card" id="section-${sectionId}">
+                <div class="section-card-header">
+                    <span>${sectionId}. Bölüm</span>
+                    <button class="btn-remove-section" onclick="removeSection(${sectionId})"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="input-group-col">
+                        <label>Bölüm Yüksekliği (mm)</label>
+                        <input type="number" class="sec-h" value="400">
+                    </div>
+                    <div class="input-group-col">
+                        <label>Kapak Sayısı (0 ise boş)</label>
+                        <input type="number" class="sec-door-qty" value="2">
+                    </div>
+                </div>
+                <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="input-group-col">
+                        <label>Raf Sayısı</label>
+                        <input type="number" class="sec-shelf-qty" value="1">
+                    </div>
+                    <div class="input-group-col">
+                        <label>Raf/Kapak İçerlek Payı</label>
+                        <input type="number" class="sec-gap" value="20">
+                    </div>
+                </div>
+                <div class="modal-grid">
+                    <div class="input-group-col">
+                        <label>Özel Raf Aralıkları (Virgülle, Örn: 300, 250)</label>
+                        <input type="text" class="sec-custom-shelves" placeholder="Boş bırakılırsa eşit bölünür">
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', sectionHtml);
+        
+        const newCard = document.getElementById(`section-${sectionId}`);
+        newCard.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                if (typeof window.update3DModel === 'function') window.update3DModel();
+            });
+        });
+        
+        if (typeof window.update3DModel === 'function') window.update3DModel();
+    }
+    
+    window.removeSection = function(id) {
+        const el = document.getElementById(`section-${id}`);
+        if (el) {
+            el.remove();
+            if (typeof window.update3DModel === 'function') window.update3DModel();
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const addBtn = document.getElementById('add-section-btn');
+        if (addBtn) addBtn.addEventListener('click', window.addSection);
+        
+        document.getElementById('open-module-wizard-btn')?.addEventListener('click', () => {
+            const container = document.getElementById('sections-container');
+            if (container && container.children.length === 0) {
+                window.addSection();
+            }
+        });
+    });
+
     function generateModuleParts() {
-        const type = document.getElementById('mod-type').value;
         const thick = parseFloat(document.getElementById('mod-thick').value) || 18;
         const w = parseFloat(document.getElementById('mod-w').value);
-        const h = parseFloat(document.getElementById('mod-h').value);
+        const overallH = parseFloat(document.getElementById('mod-h').value);
         const d = parseFloat(document.getElementById('mod-d').value);
-        const shelfQty = parseInt(document.getElementById('mod-shelf-qty').value) || 0;
-        const shelfGap = parseFloat(document.getElementById('mod-shelf-gap').value) || 0;
-        const doorQty = parseInt(document.getElementById('mod-door-qty').value) || 0;
-        const doorGap = parseFloat(document.getElementById('mod-door-gap').value) || 0;
+        const baseH = parseFloat(document.getElementById('mod-base-h').value) || 0;
+        
+        const sections = Array.from(document.querySelectorAll('.section-card')).map(card => {
+            return {
+                h: parseFloat(card.querySelector('.sec-h').value) || 0,
+                doorQty: parseInt(card.querySelector('.sec-door-qty').value) || 0,
+                shelfQty: parseInt(card.querySelector('.sec-shelf-qty').value) || 0,
+                gap: parseFloat(card.querySelector('.sec-gap').value) || 20
+            };
+        });
 
-        if (!w || !h || !d) {
-            alert("Lütfen Genişlik, Yükseklik ve Derinlik ölçülerini tam giriniz.");
+        if (!w || !overallH || !d || sections.length === 0) {
+            alert("Lütfen ölçüleri ve en az 1 bölüm giriniz.");
             return;
         }
 
         const internalW = w - (2 * thick);
+        const sideH = overallH - baseH;
 
         // 1. Yan Dikmeler
-        addPartRow({ name: "Sağ Yan", h: h, w: d, q: 1, rot: true, b: [false, true, false, false] });
-        addPartRow({ name: "Sol Yan", h: h, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        addPartRow({ name: "Sağ Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
 
-        // 2. Alt/Üst Tablalar
-        if (type === 'ust') {
-            addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
-            addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
-        } else {
-            // Alt Dolap
-            addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
-            addPartRow({ name: "Üst Kuşak (Kayıt)", h: internalW, w: 100, q: 2, rot: true, b: [false, true, false, true] });
+        // 2. Alt ve Üst Tablalar
+        addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+
+        // 3. Bölüm Arası Sabit Raflar
+        if (sections.length > 1) {
+            addPartRow({ name: "Sabit Raf (Ara Bölücü)", h: internalW, w: d, q: sections.length - 1, rot: true, b: [false, true, false, false] });
         }
 
-        // 3. Raflar
-        if (shelfQty > 0) {
-            const shelfW = internalW - 1; // 1mm boşluk
-            const shelfD = d - shelfGap;
-            addPartRow({ name: "Hareketli Raf", h: shelfW, w: shelfD, q: shelfQty, rot: true, b: [false, true, false, false] });
-        }
+        // 4. Raflar ve Kapaklar
+        sections.forEach((sec, index) => {
+            if (sec.shelfQty > 0) {
+                const shelfD = d - sec.gap;
+                addPartRow({ name: `${index+1}. Bölüm Hareketli Raf`, h: internalW - 1, w: shelfD, q: sec.shelfQty, rot: true, b: [false, true, false, false] });
+            }
+            if (sec.doorQty > 0) {
+                const doorGap = 3; 
+                const doorH = sec.h - (doorGap * 2);
+                const doorW = (w / sec.doorQty) - doorGap;
+                addPartRow({ name: `${index+1}. Bölüm Kapak`, h: doorH, w: doorW, q: sec.doorQty, rot: true, b: [true, true, true, true] });
+            }
+        });
 
-        // 4. Kapaklar
-        if (doorQty > 0) {
-            const doorH = h - (doorGap * 2);
-            const doorW = (w / doorQty) - doorGap;
-            addPartRow({ name: "Kapak", h: doorH, w: doorW, q: doorQty, rot: true, b: [true, true, true, true] });
-        }
-
-        // Modalı Kapat
         document.getElementById('module-wizard-modal').style.display = 'none';
-        
-        // Formu temizle
-        document.getElementById('mod-w').value = '';
-        document.getElementById('mod-h').value = '';
-        document.getElementById('mod-d').value = '';
-
-        alert("Modül parçaları başarıyla listeye eklendi!");
+        alert("Modüler dolap parçaları başarıyla listeye eklendi!");
     }
 
 });

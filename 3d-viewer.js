@@ -114,92 +114,134 @@ function update3DModel() {
         cabinetGroup.remove(cabinetGroup.children[0]); 
     }
 
-    const type = document.getElementById('mod-type').value;
-    const w = parseFloat(document.getElementById('mod-w').value) || 0;
-    const h = parseFloat(document.getElementById('mod-h').value) || 0;
-    const d = parseFloat(document.getElementById('mod-d').value) || 0;
-    const thick = parseFloat(document.getElementById('mod-thick').value) || 18;
-    const shelfQty = parseInt(document.getElementById('mod-shelf-qty').value) || 0;
-    const shelfGap = parseFloat(document.getElementById('mod-shelf-gap').value) || 0;
-    const doorQty = parseInt(document.getElementById('mod-door-qty').value) || 0;
-    const doorGap = parseFloat(document.getElementById('mod-door-gap').value) || 0;
+    const w = parseFloat(document.getElementById('mod-w')?.value) || 0;
+    const overallH = parseFloat(document.getElementById('mod-h')?.value) || 0;
+    const d = parseFloat(document.getElementById('mod-d')?.value) || 0;
+    const thick = parseFloat(document.getElementById('mod-thick')?.value) || 18;
+    const baseH = parseFloat(document.getElementById('mod-base-h')?.value) || 0;
+    
+    const sections = Array.from(document.querySelectorAll('.section-card')).map(card => {
+        return {
+            h: parseFloat(card.querySelector('.sec-h').value) || 0,
+            doorQty: parseInt(card.querySelector('.sec-door-qty').value) || 0,
+            shelfQty: parseInt(card.querySelector('.sec-shelf-qty').value) || 0,
+            gap: parseFloat(card.querySelector('.sec-gap').value) || 20,
+            customShelves: card.querySelector('.sec-custom-shelves').value || ""
+        };
+    });
 
-    if (w <= 0 || h <= 0 || d <= 0) return;
+    if (w <= 0 || overallH <= 0 || d <= 0 || sections.length === 0) return;
+
+    const sideH = overallH - baseH;
+    const innerW = w - (2 * thick);
+    
+    // --- 0. AYAKLAR (BAZA) ---
+    if (baseH > 0) {
+        const legMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 });
+        const legW = 50; const legD = 50;
+        const legY = baseH / 2;
+        const legMarginX = (w / 2) - 40;
+        const legMarginZ = (d / 2) - 40;
+        
+        const positions = [
+            [-legMarginX, legY, -legMarginZ],
+            [legMarginX, legY, -legMarginZ],
+            [-legMarginX, legY, legMarginZ],
+            [legMarginX, legY, legMarginZ]
+        ];
+        
+        positions.forEach(pos => {
+            const legMesh = new THREE.Mesh(new THREE.BoxGeometry(legW, baseH, legD), legMaterial);
+            legMesh.position.set(...pos);
+            cabinetGroup.add(legMesh);
+        });
+    }
 
     // --- 1. YAN DİKMELER ---
-    const sideW = thick;
-    const sideH = h;
-    const sideD = d;
-    
+    const sideY = baseH + (sideH / 2);
     const leftSideX = -(w / 2) + (thick / 2);
     const rightSideX = (w / 2) - (thick / 2);
-    const sideY = h / 2;
-    const sideZ = 0; // Derinlikte merkezlenmiş
+    const sideZ = 0; 
 
-    cabinetGroup.add(createPanel(sideW, sideH, sideD, leftSideX, sideY, sideZ));
-    cabinetGroup.add(createPanel(sideW, sideH, sideD, rightSideX, sideY, sideZ));
+    cabinetGroup.add(createPanel(thick, sideH, d, leftSideX, sideY, sideZ));
+    cabinetGroup.add(createPanel(thick, sideH, d, rightSideX, sideY, sideZ));
 
-    // --- 2. ALT VE ÜST TABLALAR ---
-    const innerW = w - (2 * thick);
-    const tbW = innerW;
-    const tbH = thick;
-    const tbD = d;
+    // --- 2. ALT TABLA ---
+    const bottomY = baseH + (thick / 2);
+    cabinetGroup.add(createPanel(innerW, thick, d, 0, bottomY, 0));
+
+    // --- 3. BÖLÜMLERİ İNŞA ET ---
+    let currentY = baseH + thick; 
     
-    const bottomY = thick / 2;
-    
-    // Hem Alt hem Üst dolapta 3D görsel bütünlüğü için tam plaka çiziyoruz.
-    cabinetGroup.add(createPanel(tbW, tbH, tbD, 0, bottomY, 0));
-    cabinetGroup.add(createPanel(tbW, tbH, tbD, 0, h - (thick / 2), 0));
-
-    // --- 3. RAFLAR ---
-    if (shelfQty > 0) {
-        const shelfW = innerW;
-        const shelfH = thick;
-        const shelfD = d - shelfGap; // İçerlek payı (kapak çarpmasın diye önden kısa)
-        
-        const shelfZ = -(d / 2) + (shelfD / 2); // Arkaya sıfır daya, önden boşluk bırak
-        
-        const innerH = h - (2 * thick);
-        const gapH = innerH / (shelfQty + 1);
-        
-        for (let i = 1; i <= shelfQty; i++) {
-            const yPos = thick + (gapH * i);
-            cabinetGroup.add(createPanel(shelfW, shelfH, shelfD, 0, yPos, shelfZ));
+    sections.forEach((sec, index) => {
+        // --- Raflar ---
+        if (sec.shelfQty > 0) {
+            const shelfD = d - sec.gap; 
+            const shelfZ = -(d / 2) + (shelfD / 2);
+            
+            let customHeights = [];
+            if (sec.customShelves.trim() !== "") {
+                customHeights = sec.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+            }
+            
+            let shelfCurrentY = currentY;
+            const defaultGap = sec.h / (sec.shelfQty + 1);
+            
+            for (let i = 0; i < sec.shelfQty; i++) {
+                let thisGap = defaultGap;
+                if (customHeights[i]) {
+                    thisGap = customHeights[i];
+                }
+                shelfCurrentY += thisGap;
+                
+                const yPos = shelfCurrentY + (thick / 2);
+                cabinetGroup.add(createPanel(innerW, thick, shelfD, 0, yPos, shelfZ));
+                
+                shelfCurrentY += thick; 
+            }
         }
-    }
 
-    // --- 4. KAPAKLAR ---
-    if (doorQty > 0) {
-        const doorH = h - (doorGap * 2);
-        const doorThick = 18; // Kapak da standart 18mm olsun
-        
-        const doorZ = (d / 2) + (doorThick / 2); // Dolabın en ön yüzeyine yerleştir
-        const doorW = (w - (doorGap * (doorQty + 1))) / doorQty;
-        
-        let currentX = -(w / 2) + doorGap + (doorW / 2);
-        const doorY = h / 2;
-        
-        for (let i = 0; i < doorQty; i++) {
-            cabinetGroup.add(createPanel(doorW, doorH, doorThick, currentX, doorY, doorZ, true));
-            currentX += doorW + doorGap;
+        // --- Kapaklar ---
+        if (sec.doorQty > 0) {
+            const doorGap = 3;
+            const doorH = sec.h - (doorGap * 2);
+            const doorThick = 18; 
+            
+            const doorZ = (d / 2) + (doorThick / 2); 
+            const doorW = (w - (doorGap * (sec.doorQty + 1))) / sec.doorQty;
+            
+            let currentX = -(w / 2) + doorGap + (doorW / 2);
+            const doorCenterY = currentY + (sec.h / 2);
+            
+            for (let i = 0; i < sec.doorQty; i++) {
+                cabinetGroup.add(createPanel(doorW, doorH, doorThick, currentX, doorCenterY, doorZ, true));
+                currentX += doorW + doorGap;
+            }
         }
-    }
-    
+        
+        currentY += sec.h;
+        
+        // --- Bölüm Üst Tablası (veya Sabit Raf) ---
+        const topY = currentY + (thick / 2);
+        cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
+        
+        currentY += thick; 
+    });
+
     // Kamerayı yeni boyuta göre hedefe kilitle
-    controls.target.set(0, h/2, 0);
+    controls.target.set(0, overallH/2, 0);
     
     // Yalnızca ilk yüklemede kamerayı hizala
     if (!camera.userData.initialized) {
-        camera.position.set(w * 1.5, h * 1.5, Math.max(w, d) * 2.5);
+        camera.position.set(w * 1.5, overallH * 1.5, Math.max(w, d) * 2.5);
         camera.userData.initialized = true;
     } else {
-        // Dinamik Sığdırma (Auto-Zoom Out): Eğer kullanıcı çok büyük bir ölçü girerse kamerayı otomatik geri çek
-        const maxDim = Math.max(w, h, d);
+        const maxDim = Math.max(w, overallH, d);
         const minDistance = maxDim * 1.8;
         const currentDistance = camera.position.distanceTo(controls.target);
         
         if (currentDistance < minDistance) {
-            const ratio = minDistance / (currentDistance || 1); // Sıfıra bölme hatasını önle
+            const ratio = minDistance / (currentDistance || 1); 
             camera.position.sub(controls.target).multiplyScalar(ratio).add(controls.target);
         }
     }
