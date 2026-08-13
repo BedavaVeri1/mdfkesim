@@ -236,6 +236,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 stockH: dom.inputs.stockH.value,
                 kerf: dom.inputs.kerf.value,
                 banding: dom.inputs.banding.value
+            },
+            moduleWizard: {
+                w: document.getElementById('mod-w').value,
+                h: document.getElementById('mod-h').value,
+                d: document.getElementById('mod-d').value,
+                thick: document.getElementById('mod-thick').value,
+                baseH: document.getElementById('mod-base-h').value,
+                sections: Array.from(document.querySelectorAll('.section-card')).map(card => {
+                    return {
+                        h: card.querySelector('.sec-h').value,
+                        doorQty: card.querySelector('.sec-door-qty').value,
+                        shelfQty: card.querySelector('.sec-shelf-qty').value,
+                        gap: card.querySelector('.sec-gap').value,
+                        customShelves: card.querySelector('.sec-custom-shelves').value
+                    };
+                })
             }
         };
 
@@ -313,6 +329,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (project.parts && project.parts.length > 0) {
                         project.parts.forEach(p => addPartRow(p));
                     }
+                    
+                    // Modül Sihirbazı Verilerini Yükle
+                    if (project.moduleWizard && project.moduleWizard.sections) {
+                        document.getElementById('mod-w').value = project.moduleWizard.w || '';
+                        document.getElementById('mod-h').value = project.moduleWizard.h || '';
+                        document.getElementById('mod-d').value = project.moduleWizard.d || '';
+                        document.getElementById('mod-thick').value = project.moduleWizard.thick || 18;
+                        document.getElementById('mod-base-h').value = project.moduleWizard.baseH || 0;
+                        
+                        const container = document.getElementById('sections-container');
+                        if (container) {
+                            container.innerHTML = '';
+                            if (typeof window.resetSectionCount === 'function') window.resetSectionCount();
+                            
+                            project.moduleWizard.sections.forEach(sec => {
+                                window.addSection();
+                                const lastCard = container.lastElementChild;
+                                if (lastCard) {
+                                    lastCard.querySelector('.sec-h').value = sec.h || '';
+                                    lastCard.querySelector('.sec-door-qty').value = sec.doorQty || 0;
+                                    lastCard.querySelector('.sec-shelf-qty').value = sec.shelfQty || 0;
+                                    lastCard.querySelector('.sec-gap').value = sec.gap || 20;
+                                    lastCard.querySelector('.sec-custom-shelves').value = sec.customShelves || "";
+                                }
+                            });
+                        }
+                        
+                        if (typeof window.updateShelfGapInfo === 'function') window.updateShelfGapInfo();
+                        if (typeof window.update3DModel === 'function') window.update3DModel();
+                    }
+                    
                     alert('Proje dosyası başarıyla yüklendi!');
                 } catch (err) {
                     alert('Geçersiz dosya formatı. Lütfen MdfKesim-Proje.json dosyasını seçtiğinizden emin olun.');
@@ -911,6 +958,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MODÜLER SİHİRBAZ: BÖLÜM (SECTION) MANTIĞI ---
     let sectionCount = 0;
+    
+    window.resetSectionCount = function() {
+        sectionCount = 0;
+    }
 
     function updateSectionLabels() {
         const cards = document.querySelectorAll('.section-card');
@@ -921,6 +972,48 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    window.updateShelfGapInfo = function() {
+        const thick = parseFloat(document.getElementById('mod-thick').value) || 18;
+        const cards = document.querySelectorAll('.section-card');
+        
+        cards.forEach((card, index) => {
+            const h = parseFloat(card.querySelector('.sec-h').value) || 0;
+            const shelfQty = parseInt(card.querySelector('.sec-shelf-qty').value) || 0;
+            const infoDiv = card.querySelector('.shelf-gap-info');
+            
+            if (!infoDiv) return;
+            
+            if (shelfQty === 0) {
+                infoDiv.textContent = '';
+                return;
+            }
+            
+            let netH;
+            if (index === 0) {
+                netH = h - (2 * thick);
+            } else {
+                netH = h - thick;
+            }
+            
+            const totalShelfThick = shelfQty * thick;
+            const netEmptySpace = netH - totalShelfThick;
+            const defaultGap = netEmptySpace / (shelfQty + 1);
+            
+            const customShelves = card.querySelector('.sec-custom-shelves').value;
+            if (customShelves.trim() !== "") {
+                infoDiv.textContent = 'Özel aralık kullanılıyor.';
+            } else {
+                infoDiv.textContent = `Net Raf Aralığı: ${defaultGap.toFixed(1)} mm`;
+            }
+        });
+    }
+    
+    // Ana form ölçüleri değiştiğinde de raf boşluklarını güncelle
+    document.getElementById('mod-thick')?.addEventListener('input', () => {
+        window.updateShelfGapInfo();
+        if (typeof window.update3DModel === 'function') window.update3DModel();
+    });
     
     window.addSection = function() {
         sectionCount++;
@@ -958,6 +1051,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="input-group-col">
                         <label>Özel Raf Aralıkları (Virgülle, Örn: 300, 250)</label>
                         <input type="text" class="sec-custom-shelves" placeholder="Boş bırakılırsa eşit bölünür">
+                        <div class="shelf-gap-info" style="color: var(--success); font-size: 0.85rem; font-weight: 500; margin-top: 5px;"></div>
                     </div>
                 </div>
             </div>
@@ -969,11 +1063,13 @@ document.addEventListener('DOMContentLoaded', () => {
         newCard.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', () => {
                 if (typeof window.update3DModel === 'function') window.update3DModel();
+                window.updateShelfGapInfo();
             });
         });
         
         if (typeof window.update3DModel === 'function') window.update3DModel();
         updateSectionLabels();
+        window.updateShelfGapInfo();
     }
     
     window.removeSection = function(id) {
@@ -982,6 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.remove();
             if (typeof window.update3DModel === 'function') window.update3DModel();
             updateSectionLabels();
+            window.updateShelfGapInfo();
         }
     }
     
