@@ -373,6 +373,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 colCards[cIdx].querySelector('.col-custom-shelves').value = colData.customShelves || '';
                                             }
                                         });
+                                    } else if (colCards[0]) {
+                                        // Eski Versiyon (v20) Uyumluluğu: Sütun yoksa, eski verileri 1. sütuna aktar
+                                        colCards[0].querySelector('.col-shelf-qty').value = sec.shelfQty || 0;
+                                        colCards[0].querySelector('.col-door-qty').value = sec.doorQty || 0;
+                                        colCards[0].querySelector('.col-stack-qty').value = 1;
+                                        colCards[0].querySelector('.col-gap').value = sec.gap || 20;
+                                        colCards[0].querySelector('.col-custom-shelves').value = sec.customShelves || '';
                                     }
                                 }
                             });
