@@ -171,9 +171,22 @@ function update3DModel() {
     cabinetGroup.add(createPanel(innerW, thick, d, 0, bottomY, 0));
 
     // --- 3. BÖLÜMLERİ İNŞA ET ---
-    let currentY = baseH + thick; 
+    let currentOuterY = baseH; 
     
     sections.forEach((sec, index) => {
+        let netH;
+        let currentInnerY;
+        
+        if (index === 0) {
+            // 1. Bölüm: Hem Alt Tabla hem kendi Üst Tablası dahil
+            netH = sec.h - (2 * thick);
+            currentInnerY = currentOuterY + thick; // Alt tablanın üstünden başlar
+        } else {
+            // Diğer Bölümler: Altındaki tablayı paylaşıyor, sadece kendi Üst Tablası dahil
+            netH = sec.h - thick;
+            currentInnerY = currentOuterY; // Bir önceki bölümün üst tablanın üstünden başlar
+        }
+        
         // --- Raflar ---
         if (sec.shelfQty > 0) {
             const shelfD = d - sec.gap; 
@@ -184,11 +197,11 @@ function update3DModel() {
                 customHeights = sec.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
             }
             
-            let shelfCurrentY = currentY;
+            let shelfCurrentY = currentInnerY;
             
-            // Raf kalınlıklarını toplam yükseklikten düşerek "Net Boşluk" buluyoruz.
+            // Net Boşluk hesabı
             const totalShelfThick = sec.shelfQty * thick;
-            const netEmptySpace = sec.h - totalShelfThick;
+            const netEmptySpace = netH - totalShelfThick;
             const defaultGap = netEmptySpace / (sec.shelfQty + 1);
             
             for (let i = 0; i < sec.shelfQty; i++) {
@@ -208,6 +221,7 @@ function update3DModel() {
         // --- Kapaklar ---
         if (sec.doorQty > 0) {
             const doorGap = 3;
+            // Kapak yüksekliği bölümün tüm dış yüksekliğini kapsar
             const doorH = sec.h - (doorGap * 2);
             const doorThick = 18; 
             
@@ -215,7 +229,8 @@ function update3DModel() {
             const doorW = (w - (doorGap * (sec.doorQty + 1))) / sec.doorQty;
             
             let currentX = -(w / 2) + doorGap + (doorW / 2);
-            const doorCenterY = currentY + (sec.h / 2);
+            // Kapak Y ekseninde bölümün tam dış merkezine hizalanır
+            const doorCenterY = currentOuterY + (sec.h / 2);
             
             for (let i = 0; i < sec.doorQty; i++) {
                 cabinetGroup.add(createPanel(doorW, doorH, doorThick, currentX, doorCenterY, doorZ, true));
@@ -223,13 +238,13 @@ function update3DModel() {
             }
         }
         
-        currentY += sec.h;
-        
-        // --- Bölüm Üst Tablası (veya Sabit Raf) ---
-        const topY = currentY + (thick / 2);
+        // --- Bölüm Üst Tablası (veya Sabit Ara Raf) ---
+        // Bu tablanın üst yüzeyi tam olarak (currentOuterY + sec.h) noktasına basmalıdır.
+        const topY = currentOuterY + sec.h - (thick / 2);
         cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
         
-        currentY += thick; 
+        // Bir sonraki bölüm, bu bölümün bittiği dış noktadan başlar
+        currentOuterY += sec.h;
     });
 
     // Kamerayı yeni boyuta göre hedefe kilitle
