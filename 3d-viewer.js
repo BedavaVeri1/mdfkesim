@@ -185,7 +185,11 @@ function update3DModel() {
             }
             
             let shelfCurrentY = currentY;
-            const defaultGap = sec.h / (sec.shelfQty + 1);
+            
+            // Raf kalınlıklarını toplam yükseklikten düşerek "Net Boşluk" buluyoruz.
+            const totalShelfThick = sec.shelfQty * thick;
+            const netEmptySpace = sec.h - totalShelfThick;
+            const defaultGap = netEmptySpace / (sec.shelfQty + 1);
             
             for (let i = 0; i < sec.shelfQty; i++) {
                 let thisGap = defaultGap;

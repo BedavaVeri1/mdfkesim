@@ -911,6 +911,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MODÜLER SİHİRBAZ: BÖLÜM (SECTION) MANTIĞI ---
     let sectionCount = 0;
+
+    function updateSectionLabels() {
+        const cards = document.querySelectorAll('.section-card');
+        cards.forEach((card, index) => {
+            const label = card.querySelector('.section-label');
+            if (label) {
+                label.textContent = `${index + 1}. Bölüm`;
+            }
+        });
+    }
     
     window.addSection = function() {
         sectionCount++;
@@ -921,7 +931,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sectionHtml = `
             <div class="section-card" id="section-${sectionId}">
                 <div class="section-card-header">
-                    <span>${sectionId}. Bölüm</span>
+                    <span class="section-label">${sectionId}. Bölüm</span>
                     <button class="btn-remove-section" onclick="removeSection(${sectionId})"><i class="fas fa-trash"></i></button>
                 </div>
                 <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
@@ -963,6 +973,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         if (typeof window.update3DModel === 'function') window.update3DModel();
+        updateSectionLabels();
     }
     
     window.removeSection = function(id) {
@@ -970,6 +981,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) {
             el.remove();
             if (typeof window.update3DModel === 'function') window.update3DModel();
+            updateSectionLabels();
         }
     }
     
