@@ -973,17 +973,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    document.addEventListener('DOMContentLoaded', () => {
-        const addBtn = document.getElementById('add-section-btn');
-        if (addBtn) addBtn.addEventListener('click', window.addSection);
-        
-        document.getElementById('open-module-wizard-btn')?.addEventListener('click', () => {
+    const addBtn = document.getElementById('add-section-btn');
+    if (addBtn) addBtn.addEventListener('click', window.addSection);
+    
+    const openModBtn = document.getElementById('open-module-wizard-btn');
+    if (openModBtn) {
+        openModBtn.addEventListener('click', () => {
             const container = document.getElementById('sections-container');
             if (container && container.children.length === 0) {
                 window.addSection();
             }
         });
-    });
+    }
 
     function generateModuleParts() {
         const thick = parseFloat(document.getElementById('mod-thick').value) || 18;
