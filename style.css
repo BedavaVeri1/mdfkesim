@@ -265,6 +265,8 @@ body {
 }
 
 .input-group-col input, .input-group-col select {
+    width: 100%;
+    box-sizing: border-box;
     padding: 10px;
     border: 1px solid rgba(79, 70, 229, 0.3);
     border-radius: 8px;
