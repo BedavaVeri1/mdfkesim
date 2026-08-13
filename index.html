@@ -17,6 +17,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Three.js for 3D Visualizer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 
 <body>
@@ -154,67 +157,80 @@
 
     <!-- HAZIR MODÜL SİHİRBAZI MODALI -->
     <div id="module-wizard-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-content-large">
             <span class="close-modal" id="close-wizard">&times;</span>
-            <h2><i class="fas fa-magic"></i> Hazır Modül Sihirbazı</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Dış ölçüleri girin, program tüm parçaları (yanlar, alt/üst, raflar, kapaklar) otomatik hesaplasın.</p>
             
-            <div class="modal-grid">
-                <div class="input-group-col">
-                    <label>Dolap Tipi</label>
-                    <select id="mod-type">
-                        <option value="alt">Mutfak Alt / Standart Dolap</option>
-                        <option value="ust">Mutfak Üst Dolap</option>
-                    </select>
+            <div class="modal-layout">
+                <!-- Sol Taraf: Form -->
+                <div class="modal-form-side">
+                    <h2><i class="fas fa-magic"></i> Hazır Modül Sihirbazı</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Dış ölçüleri girin, program tüm parçaları hesaplasın ve 3 boyutlu çizsin.</p>
+                    
+                    <div class="modal-grid">
+                        <div class="input-group-col">
+                            <label>Dolap Tipi</label>
+                            <select id="mod-type">
+                                <option value="alt">Mutfak Alt / Standart Dolap</option>
+                                <option value="ust">Mutfak Üst Dolap</option>
+                            </select>
+                        </div>
+                        <div class="input-group-col">
+                            <label>MDF Kalınlığı (mm)</label>
+                            <input type="number" id="mod-thick" value="18">
+                        </div>
+                    </div>
+
+                    <div class="modal-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <div class="input-group-col">
+                            <label>Genişlik (mm)</label>
+                            <input type="number" id="mod-w" placeholder="Örn: 600" value="600">
+                        </div>
+                        <div class="input-group-col">
+                            <label>Yükseklik (mm)</label>
+                            <input type="number" id="mod-h" placeholder="Örn: 720" value="720">
+                        </div>
+                        <div class="input-group-col">
+                            <label>Derinlik (mm)</label>
+                            <input type="number" id="mod-d" placeholder="Örn: 560" value="560">
+                        </div>
+                    </div>
+
+                    <div class="modal-grid">
+                        <div class="input-group-col">
+                            <label>Raf Sayısı</label>
+                            <input type="number" id="mod-shelf-qty" value="2">
+                        </div>
+                        <div class="input-group-col">
+                            <label>Raf İçerlek Payı (mm)</label>
+                            <input type="number" id="mod-shelf-gap" value="20">
+                        </div>
+                    </div>
+
+                    <div class="modal-grid">
+                        <div class="input-group-col">
+                            <label>Kapak Sayısı</label>
+                            <input type="number" id="mod-door-qty" value="2">
+                        </div>
+                        <div class="input-group-col">
+                            <label>Kapak Boşluğu (mm)</label>
+                            <input type="number" id="mod-door-gap" value="3">
+                        </div>
+                    </div>
+
+                    <button id="generate-module-btn" class="btn-primary" style="margin-top:20px; width:100%;"><i class="fas fa-check"></i> Parçaları Listeye Ekle</button>
                 </div>
-                <div class="input-group-col">
-                    <label>MDF Kalınlığı (mm)</label>
-                    <input type="number" id="mod-thick" value="18">
+                
+                <!-- Sağ Taraf: 3D Önizleme -->
+                <div class="modal-3d-side">
+                    <div id="module-3d-container"></div>
+                    <div class="viewer-hint"><i class="fas fa-mouse"></i> Döndürmek için sürükle, tekerlekle yaklaş. Kapaklar cam gibi yarı saydamdır.</div>
                 </div>
             </div>
-
-            <div class="modal-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-                <div class="input-group-col">
-                    <label>Genişlik (mm)</label>
-                    <input type="number" id="mod-w" placeholder="Örn: 600">
-                </div>
-                <div class="input-group-col">
-                    <label>Yükseklik (mm)</label>
-                    <input type="number" id="mod-h" placeholder="Örn: 720">
-                </div>
-                <div class="input-group-col">
-                    <label>Derinlik (mm)</label>
-                    <input type="number" id="mod-d" placeholder="Örn: 560">
-                </div>
-            </div>
-
-            <div class="modal-grid">
-                <div class="input-group-col">
-                    <label>Raf Sayısı</label>
-                    <input type="number" id="mod-shelf-qty" value="2">
-                </div>
-                <div class="input-group-col">
-                    <label>Raf İçerlek Payı (mm)</label>
-                    <input type="number" id="mod-shelf-gap" value="20" title="Raflar kapaklara çarpmasın diye ne kadar kısa kesilsin?">
-                </div>
-            </div>
-
-            <div class="modal-grid">
-                <div class="input-group-col">
-                    <label>Kapak Sayısı</label>
-                    <input type="number" id="mod-door-qty" value="2">
-                </div>
-                <div class="input-group-col">
-                    <label>Kapak Boşluğu (mm)</label>
-                    <input type="number" id="mod-door-gap" value="3" title="Menteşe çalışma payı (Tüm kenarlardan ve ortadan)">
-                </div>
-            </div>
-
-            <button id="generate-module-btn" class="btn-primary" style="margin-top:20px; width:100%;"><i class="fas fa-check"></i> Parçaları Hesapla ve Ekle</button>
         </div>
     </div>
 
     <script src="script.js"></script>
+    <script src="3d-viewer.js"></script>
     
     <!-- Service Worker Kaydı (PWA) -->
     <script>
