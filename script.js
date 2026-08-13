@@ -138,17 +138,40 @@ document.addEventListener('DOMContentLoaded', () => {
             // Başlığı atla (satır 0), verileri al
             // Beklenen Format: [Ad, Boy, En, Adet]
             // Basit zeka: Eğer sayı varsa al
+            // Döndürme veya Bant için yardımcı fonksiyon (X, 1, Evet vb. yakalar)
+            const isTruthyExcel = (val) => {
+                if (val === undefined || val === null || val === '') return false;
+                const s = String(val).trim().toLowerCase();
+                return ['1', 'x', 'e', 'evet', 'var', 'v', '+'].includes(s);
+            };
 
             dom.partsList.innerHTML = ''; // Listeyi temizle
 
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
                 if (row.length >= 3) {
+                    
+                    // Döndürme (Varsayılan: true. Eğer E sütununa bilerek bir şey girildiyse onu kullan)
+                    let rot = true;
+                    if (row[4] !== undefined && row[4] !== null && String(row[4]).trim() !== "") {
+                        rot = isTruthyExcel(row[4]);
+                    }
+
+                    // Bantlama (Üst, Sağ, Alt, Sol)
+                    const b = [
+                        isTruthyExcel(row[5]), // Üst (Top)
+                        isTruthyExcel(row[6]), // Sağ (Right)
+                        isTruthyExcel(row[7]), // Alt (Bottom)
+                        isTruthyExcel(row[8])  // Sol (Left)
+                    ];
+
                     addPartRow({
                         name: row[0] || 'Parça ' + i,
                         h: row[1],
                         w: row[2],
-                        q: row[3] || 1
+                        q: row[3] || 1,
+                        rot: rot,
+                        b: b
                     });
                 }
             }
@@ -875,10 +898,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function downloadExcelTemplate() {
     // 1. Şablon Verisi (Başlıklar ve Örnek Satırlar)
     const data = [
-        ["Parça Adı", "En (mm)", "Boy (mm)", "Adet"], // Başlık Satırı (A1, B1, C1, D1)
-        ["Mutfak Kapak", 450, 720, 2],                 // Örnek 1
-        ["Çekmece Önü", 450, 180, 4],                 // Örnek 2
-        ["Raf", 300, 500, 1]                          // Örnek 3
+        ["Parça Adı", "Boy (mm)", "En (mm)", "Adet", "Dönsün(X)", "Üst Bant(X)", "Sağ Bant(X)", "Alt Bant(X)", "Sol Bant(X)"],
+        ["Mutfak Kapak", 720, 450, 2, "X", "X", "X", "X", "X"],
+        ["Çekmece Önü", 180, 450, 4, "X", "", "X", "", "X"],
+        ["Raf", 500, 300, 1, "", "X", "", "", ""]
     ];
 
     // 2. Çalışma Kitabı Oluştur
@@ -887,10 +910,15 @@ function downloadExcelTemplate() {
 
     // 3. Sütun Genişliklerini Ayarla (Görsel Güzellik)
     ws['!cols'] = [
-        { wch: 20 }, // A sütunu genişliği
-        { wch: 10 }, // B
-        { wch: 10 }, // C
-        { wch: 10 }  // D
+        { wch: 20 }, // A (Ad)
+        { wch: 10 }, // B (Boy)
+        { wch: 10 }, // C (En)
+        { wch: 10 }, // D (Adet)
+        { wch: 12 }, // E (Dönsün)
+        { wch: 12 }, // F (Üst Bant)
+        { wch: 12 }, // G (Sağ Bant)
+        { wch: 12 }, // H (Alt Bant)
+        { wch: 12 }  // I (Sol Bant)
     ];
 
     // 4. Sayfayı Kitaba Ekle
