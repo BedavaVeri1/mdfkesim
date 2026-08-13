@@ -43,6 +43,8 @@ function init3DViewer() {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
     controls.target.set(0, 350, 0);
 
     // Işıklar
@@ -145,22 +147,9 @@ function update3DModel() {
     
     const bottomY = thick / 2;
     
-    if (type === 'alt') {
-        // Alt Dolap: Alt tabla tam, üstte sadece ön-arka kayıt
-        cabinetGroup.add(createPanel(tbW, tbH, tbD, 0, bottomY, 0));
-        
-        const kayitD = 100; // 10 cm standart kayıt genişliği
-        const frontKayitZ = (d / 2) - (kayitD / 2);
-        const backKayitZ = -(d / 2) + (kayitD / 2);
-        const topY = h - (thick / 2);
-        
-        cabinetGroup.add(createPanel(tbW, tbH, kayitD, 0, topY, frontKayitZ));
-        cabinetGroup.add(createPanel(tbW, tbH, kayitD, 0, topY, backKayitZ));
-    } else {
-        // Üst Dolap: Hem alt hem üst tabla tam plaka
-        cabinetGroup.add(createPanel(tbW, tbH, tbD, 0, bottomY, 0));
-        cabinetGroup.add(createPanel(tbW, tbH, tbD, 0, h - (thick / 2), 0));
-    }
+    // Hem Alt hem Üst dolapta 3D görsel bütünlüğü için tam plaka çiziyoruz.
+    cabinetGroup.add(createPanel(tbW, tbH, tbD, 0, bottomY, 0));
+    cabinetGroup.add(createPanel(tbW, tbH, tbD, 0, h - (thick / 2), 0));
 
     // --- 3. RAFLAR ---
     if (shelfQty > 0) {
@@ -196,13 +185,23 @@ function update3DModel() {
         }
     }
     
-    // Kamerayı yeni boyuta göre hafifçe ayarla
+    // Kamerayı yeni boyuta göre hedefe kilitle
     controls.target.set(0, h/2, 0);
     
     // Yalnızca ilk yüklemede kamerayı hizala
     if (!camera.userData.initialized) {
-        camera.position.set(w * 1.2, h * 1.5, Math.max(w, d) * 2.2);
+        camera.position.set(w * 1.5, h * 1.5, Math.max(w, d) * 2.5);
         camera.userData.initialized = true;
+    } else {
+        // Dinamik Sığdırma (Auto-Zoom Out): Eğer kullanıcı çok büyük bir ölçü girerse kamerayı otomatik geri çek
+        const maxDim = Math.max(w, h, d);
+        const minDistance = maxDim * 1.8;
+        const currentDistance = camera.position.distanceTo(controls.target);
+        
+        if (currentDistance < minDistance) {
+            const ratio = minDistance / (currentDistance || 1); // Sıfıra bölme hatasını önle
+            camera.position.sub(controls.target).multiplyScalar(ratio).add(controls.target);
+        }
     }
     
     controls.update();

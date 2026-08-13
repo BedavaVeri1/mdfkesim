@@ -155,10 +155,12 @@
         </div> <!-- App Container Bitişi -->
     </div>
 
-    <!-- HAZIR MODÜL SİHİRBAZI MODALI -->
+    <!-- HAZIR MODÜL SİHİRBAZI MODALI (Bağımsız Tam Ekran) -->
     <div id="module-wizard-modal" class="modal">
         <div class="modal-content modal-content-large">
-            <span class="close-modal" id="close-wizard">&times;</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light);">
+                <button id="close-wizard" class="btn-secondary" style="margin: 0; width: auto; padding: 10px 20px;"><i class="fas fa-arrow-left"></i> Ana Ekrana Dön</button>
+            </div>
             
             <div class="modal-layout">
                 <!-- Sol Taraf: Form -->
