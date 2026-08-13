@@ -204,6 +204,38 @@ body {
     gap: 12px;
 }
 
+.cost-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.cost-grid label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.cost-grid input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(79, 70, 229, 0.4);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.cost-grid input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    background: white;
+}
+
 .input-group {
     display: flex;
     align-items: center;

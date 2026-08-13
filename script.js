@@ -384,8 +384,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const kerf = parseFloat(dom.inputs.kerf.value);
         const bandThick = parseFloat(dom.inputs.banding.value);
-        const sheetPrice = parseFloat(dom.inputs.sheetPrice.value);
-        const cutPrice = parseFloat(dom.inputs.cutPrice.value);
+        const sheetPrice = parseFloat(dom.inputs.sheetPrice.value) || 0;
+        const cutPrice = parseFloat(dom.inputs.cutPrice.value) || 0;
+        const bandPrice = parseFloat(document.getElementById('bandPrice').value) || 0;
 
         if (!stockW || !stockH) { alert('Stok ölçülerini girin!'); return; }
 
@@ -460,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         projectState.settings = { stockW, stockH, kerf, bandThick };
 
         // 5. İstatistikler & Maliyet
-        calculateStats(sheets, stockW, stockH, sheetPrice, cutPrice);
+        calculateStats(sheets, stockW, stockH, sheetPrice, cutPrice, bandPrice);
 
         // 6. Artan Parçalar
         listOffcuts(sheets);
@@ -473,29 +474,40 @@ document.addEventListener('DOMContentLoaded', () => {
         drawResults(stockW, stockH, sheets);
     }
 
-    function calculateStats(sheets, sw, sh, sPrice, cPrice) {
+    function calculateStats(sheets, sw, sh, sPrice, cPrice, bPrice) {
         let totalArea = sheets.length * sw * sh;
         let usedArea = 0;
         let totalCutLength = 0; // Metre tül
+        let totalBandLength = 0; // Metre tül
 
         sheets.forEach(sheet => {
             sheet.placedBlocks.forEach(b => {
                 usedArea += b.realCutW * b.realCutH;
                 // Kesim uzunluğu (Çevre / 2 + ortak kenar mantığı karmaşık, basitçe çevre alalım)
                 totalCutLength += (b.realCutW + b.realCutH) * 2;
+                
+                // Bant uzunluğu hesapla [Top, Right, Bottom, Left]
+                if (b.banding[0]) totalBandLength += b.finishW;
+                if (b.banding[1]) totalBandLength += b.finishH;
+                if (b.banding[2]) totalBandLength += b.finishW;
+                if (b.banding[3]) totalBandLength += b.finishH;
             });
         });
 
         const eff = totalArea > 0 ? (usedArea / totalArea) * 100 : 0;
         const totalCutMeter = totalCutLength / 1000; // mm -> m
+        const totalBandMeter = totalBandLength / 1000; // mm -> m
 
-        // Maliyet: Plaka + Kesim
-        const cost = (sheets.length * sPrice) + (totalCutMeter * cPrice);
+        // Maliyet: (Plaka * Fiyat) + (Plaka * KesimÜcreti) + (Bant Metresi * Bant Fiyatı)
+        const cost = (sheets.length * sPrice) + (sheets.length * cPrice) + (totalBandMeter * bPrice);
 
         dom.stats.sheets.innerText = sheets.length;
         dom.stats.efficiency.innerText = '%' + eff.toFixed(1);
         dom.stats.cost.innerText = cost.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
         dom.stats.cutLen.innerText = totalCutMeter.toFixed(1) + ' m';
+        
+        const bandEl = document.getElementById('total-band-len');
+        if(bandEl) bandEl.innerText = totalBandMeter.toFixed(1) + ' m';
     }
 
     function listOffcuts(sheets) {

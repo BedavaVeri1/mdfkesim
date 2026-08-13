@@ -62,14 +62,18 @@
                         <input type="number" id="bandingThick" value="1" step="0.1">
                     </div>
                 </div>
-                <div class="settings-grid">
+                <div class="cost-grid">
                     <div>
                         <label>Plaka ₺</label>
                         <input type="number" id="sheetPrice" value="1500">
                     </div>
                     <div>
-                        <label>Kesim ₺/m</label>
-                        <input type="number" id="cutPrice" value="10">
+                        <label>Kesim ₺/Plk</label>
+                        <input type="number" id="cutPrice" value="50">
+                    </div>
+                    <div>
+                        <label>Bant ₺/m</label>
+                        <input type="number" id="bandPrice" value="15">
                     </div>
                 </div>
             </div>
@@ -124,6 +128,11 @@
                     <span>Kesim Metrajı</span>
                     <strong id="total-cut-len">0 m</strong>
                     <i class="fas fa-ruler-combined stat-icon"></i>
+                </div>
+                <div class="stat-item">
+                    <span>Bant Metrajı</span>
+                    <strong id="total-band-len">0 m</strong>
+                    <i class="fas fa-tape stat-icon"></i>
                 </div>
             </div>
 
