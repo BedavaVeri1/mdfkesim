@@ -641,14 +641,14 @@ input[type="number"] {
 /* Enhanced Stats Bar */
 .stats-bar {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
     margin-bottom: 24px;
 }
 
 .stat-item {
     background: white;
-    padding: 20px;
+    padding: 15px;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
     display: flex;
@@ -688,6 +688,13 @@ input[type="number"] {
 .stat-item:nth-child(4) .stat-icon { color: #d8b4fe; }
 .stat-item:nth-child(4) span, .stat-item:nth-child(4) strong { color: #6b21a8; }
 
+.stat-item:nth-child(5) {
+    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+    border: 1px solid #5eead4;
+}
+.stat-item:nth-child(5) .stat-icon { color: #5eead4; }
+.stat-item:nth-child(5) span, .stat-item:nth-child(5) strong { color: #0f766e; }
+
 .stat-item:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
@@ -709,7 +716,7 @@ input[type="number"] {
 }
 
 .stat-item span {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     font-weight: 600;
     text-transform: uppercase;
@@ -720,7 +727,7 @@ input[type="number"] {
 
 .stat-item strong {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     color: var(--dark);
     font-weight: 800;
     z-index: 1;
