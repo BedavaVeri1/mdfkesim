@@ -101,8 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         row.innerHTML = `
             <input type="text" placeholder="Adı" class="p-name" value="${name}" style="flex:2">
-            <input type="number" placeholder="En" class="p-w" value="${w}" style="flex:1.5">
             <input type="number" placeholder="Boy" class="p-h" value="${h}" style="flex:1.5">
+            <input type="number" placeholder="En" class="p-w" value="${w}" style="flex:1.5">
             <input type="number" value="${q}" class="p-q" style="flex:1">
             
             <div style="flex:0.5; text-align:center;">
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
             // Başlığı atla (satır 0), verileri al
-            // Beklenen Format: [Ad, En, Boy, Adet]
+            // Beklenen Format: [Ad, Boy, En, Adet]
             // Basit zeka: Eğer sayı varsa al
 
             dom.partsList.innerHTML = ''; // Listeyi temizle
@@ -146,8 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (row.length >= 3) {
                     addPartRow({
                         name: row[0] || 'Parça ' + i,
-                        w: row[1],
-                        h: row[2],
+                        h: row[1],
+                        w: row[2],
                         q: row[3] || 1
                     });
                 }
