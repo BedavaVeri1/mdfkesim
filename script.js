@@ -82,6 +82,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 customStockGroup.style.display = 'flex';
             }
         });
+
+        // Modül Sihirbazı
+        const wizardBtn = document.getElementById('open-module-wizard-btn');
+        const wizardModal = document.getElementById('module-wizard-modal');
+        const closeWizard = document.getElementById('close-wizard');
+        const generateModuleBtn = document.getElementById('generate-module-btn');
+
+        if (wizardBtn && wizardModal) {
+            wizardBtn.addEventListener('click', () => { wizardModal.style.display = 'block'; });
+            closeWizard.addEventListener('click', () => { wizardModal.style.display = 'none'; });
+            window.addEventListener('click', (e) => {
+                if (e.target === wizardModal) wizardModal.style.display = 'none';
+            });
+            generateModuleBtn.addEventListener('click', generateModuleParts);
+        }
     }
 
     // --- UI FONKSİYONLARI ---
@@ -893,7 +908,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.open(doc.output('bloburl'), '_blank');
     }
+
+    // --- HAZIR MODÜL SİHİRBAZI MANTIĞI ---
+    function generateModuleParts() {
+        const type = document.getElementById('mod-type').value;
+        const thick = parseFloat(document.getElementById('mod-thick').value) || 18;
+        const w = parseFloat(document.getElementById('mod-w').value);
+        const h = parseFloat(document.getElementById('mod-h').value);
+        const d = parseFloat(document.getElementById('mod-d').value);
+        const shelfQty = parseInt(document.getElementById('mod-shelf-qty').value) || 0;
+        const shelfGap = parseFloat(document.getElementById('mod-shelf-gap').value) || 0;
+        const doorQty = parseInt(document.getElementById('mod-door-qty').value) || 0;
+        const doorGap = parseFloat(document.getElementById('mod-door-gap').value) || 0;
+
+        if (!w || !h || !d) {
+            alert("Lütfen Genişlik, Yükseklik ve Derinlik ölçülerini tam giriniz.");
+            return;
+        }
+
+        const internalW = w - (2 * thick);
+
+        // 1. Yan Dikmeler
+        addPartRow({ name: "Sağ Yan", h: h, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        addPartRow({ name: "Sol Yan", h: h, w: d, q: 1, rot: true, b: [false, true, false, false] });
+
+        // 2. Alt/Üst Tablalar
+        if (type === 'ust') {
+            addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+            addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        } else {
+            // Alt Dolap
+            addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+            addPartRow({ name: "Üst Kuşak (Kayıt)", h: internalW, w: 100, q: 2, rot: true, b: [false, true, false, true] });
+        }
+
+        // 3. Raflar
+        if (shelfQty > 0) {
+            const shelfW = internalW - 1; // 1mm boşluk
+            const shelfD = d - shelfGap;
+            addPartRow({ name: "Hareketli Raf", h: shelfW, w: shelfD, q: shelfQty, rot: true, b: [false, true, false, false] });
+        }
+
+        // 4. Kapaklar
+        if (doorQty > 0) {
+            const doorH = h - (doorGap * 2);
+            const doorW = (w / doorQty) - doorGap;
+            addPartRow({ name: "Kapak", h: doorH, w: doorW, q: doorQty, rot: true, b: [true, true, true, true] });
+        }
+
+        // Modalı Kapat
+        document.getElementById('module-wizard-modal').style.display = 'none';
+        
+        // Formu temizle
+        document.getElementById('mod-w').value = '';
+        document.getElementById('mod-h').value = '';
+        document.getElementById('mod-d').value = '';
+
+        alert("Modül parçaları başarıyla listeye eklendi!");
+    }
+
 });
+
 // --- EXCEL ŞABLON İNDİR ---
 function downloadExcelTemplate() {
     // 1. Şablon Verisi (Başlıklar ve Örnek Satırlar)
@@ -904,26 +979,14 @@ function downloadExcelTemplate() {
         ["Raf", 500, 300, 1, "", "X", "", "", ""]
     ];
 
-    // 2. Çalışma Kitabı Oluştur
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(data);
 
-    // 3. Sütun Genişliklerini Ayarla (Görsel Güzellik)
     ws['!cols'] = [
-        { wch: 20 }, // A (Ad)
-        { wch: 10 }, // B (Boy)
-        { wch: 10 }, // C (En)
-        { wch: 10 }, // D (Adet)
-        { wch: 12 }, // E (Dönsün)
-        { wch: 12 }, // F (Üst Bant)
-        { wch: 12 }, // G (Sağ Bant)
-        { wch: 12 }, // H (Alt Bant)
-        { wch: 12 }  // I (Sol Bant)
+        { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+        { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }
     ];
 
-    // 4. Sayfayı Kitaba Ekle
     XLSX.utils.book_append_sheet(wb, ws, "Kesim Listesi");
-
-    // 5. İndir
     XLSX.writeFile(wb, "MdfKesim_Sablon.xlsx");
 }
