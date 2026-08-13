@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mdfkesim-v12';
+const CACHE_NAME = 'mdfkesim-v13';
 const ASSETS = [
     './',
     './index.html',
@@ -12,13 +12,33 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', event => {
+    self.skipWaiting(); // Yeni versiyonu anında kur
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
     );
 });
 
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cache => {
+                    if (cache !== CACHE_NAME) {
+                        return caches.delete(cache); // Eski önbellekleri sil
+                    }
+                })
+            );
+        }).then(() => {
+            return self.clients.claim(); // Anında kontrolü ele al
+        })
+    );
+});
+
 self.addEventListener('fetch', event => {
     event.respondWith(
-        caches.match(event.request).then(response => response || fetch(event.request))
+        caches.match(event.request).then(response => {
+            // Önbellekte varsa ver, yoksa ağdan çek
+            return response || fetch(event.request);
+        })
     );
 });
