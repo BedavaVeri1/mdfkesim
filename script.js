@@ -246,10 +246,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 sections: Array.from(document.querySelectorAll('.section-card')).map(card => {
                     return {
                         h: card.querySelector('.sec-h').value,
-                        doorQty: card.querySelector('.sec-door-qty').value,
-                        shelfQty: card.querySelector('.sec-shelf-qty').value,
-                        gap: card.querySelector('.sec-gap').value,
-                        customShelves: card.querySelector('.sec-custom-shelves').value
+                        colsCount: card.querySelector('.sec-cols-count').value,
+                        columns: Array.from(card.querySelectorAll('.column-card')).map(col => {
+                            return {
+                                shelfQty: col.querySelector('.col-shelf-qty').value,
+                                doorQty: col.querySelector('.col-door-qty').value,
+                                stackQty: col.querySelector('.col-stack-qty').value,
+                                gap: col.querySelector('.col-gap').value,
+                                customW: col.querySelector('.col-custom-w').value,
+                                customDrawers: col.querySelector('.col-custom-drawers').value,
+                                customShelves: col.querySelector('.col-custom-shelves').value
+                            };
+                        })
                     };
                 })
             }
@@ -348,10 +356,24 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const lastCard = container.lastElementChild;
                                 if (lastCard) {
                                     lastCard.querySelector('.sec-h').value = sec.h || '';
-                                    lastCard.querySelector('.sec-door-qty').value = sec.doorQty || 0;
-                                    lastCard.querySelector('.sec-shelf-qty').value = sec.shelfQty || 0;
-                                    lastCard.querySelector('.sec-gap').value = sec.gap || 20;
-                                    lastCard.querySelector('.sec-custom-shelves').value = sec.customShelves || "";
+                                    const colInput = lastCard.querySelector('.sec-cols-count');
+                                    colInput.value = sec.colsCount || 1;
+                                    colInput.dispatchEvent(new Event('input')); // Sütunları DOM'a bas
+                                    
+                                    const colCards = lastCard.querySelectorAll('.column-card');
+                                    if (sec.columns) {
+                                        sec.columns.forEach((colData, cIdx) => {
+                                            if (colCards[cIdx]) {
+                                                colCards[cIdx].querySelector('.col-shelf-qty').value = colData.shelfQty || 0;
+                                                colCards[cIdx].querySelector('.col-door-qty').value = colData.doorQty || 1;
+                                                colCards[cIdx].querySelector('.col-stack-qty').value = colData.stackQty || 1;
+                                                colCards[cIdx].querySelector('.col-gap').value = colData.gap || 20;
+                                                colCards[cIdx].querySelector('.col-custom-w').value = colData.customW || '';
+                                                colCards[cIdx].querySelector('.col-custom-drawers').value = colData.customDrawers || '';
+                                                colCards[cIdx].querySelector('.col-custom-shelves').value = colData.customShelves || '';
+                                            }
+                                        });
+                                    }
                                 }
                             });
                         }
@@ -979,16 +1001,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         cards.forEach((card, index) => {
             const h = parseFloat(card.querySelector('.sec-h').value) || 0;
-            const shelfQty = parseInt(card.querySelector('.sec-shelf-qty').value) || 0;
-            const infoDiv = card.querySelector('.shelf-gap-info');
-            
-            if (!infoDiv) return;
-            
-            if (shelfQty === 0) {
-                infoDiv.textContent = '';
-                return;
-            }
-            
             let netH;
             if (index === 0) {
                 netH = h - (2 * thick);
@@ -996,16 +1008,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 netH = h - thick;
             }
             
-            const totalShelfThick = shelfQty * thick;
-            const netEmptySpace = netH - totalShelfThick;
-            const defaultGap = netEmptySpace / (shelfQty + 1);
-            
-            const customShelves = card.querySelector('.sec-custom-shelves').value;
-            if (customShelves.trim() !== "") {
-                infoDiv.textContent = 'Özel aralık kullanılıyor.';
-            } else {
-                infoDiv.textContent = `Net Raf Aralığı: ${defaultGap.toFixed(1)} mm`;
-            }
+            card.querySelectorAll('.column-card').forEach(col => {
+                const shelfQty = parseInt(col.querySelector('.col-shelf-qty').value) || 0;
+                const infoDiv = col.querySelector('.shelf-gap-info');
+                
+                if (!infoDiv) return;
+                if (shelfQty === 0) {
+                    infoDiv.textContent = '';
+                    return;
+                }
+                
+                const totalShelfThick = shelfQty * thick;
+                const netEmptySpace = netH - totalShelfThick;
+                const defaultGap = netEmptySpace / (shelfQty + 1);
+                
+                const customShelves = col.querySelector('.col-custom-shelves').value;
+                if (customShelves.trim() !== "") {
+                    infoDiv.textContent = 'Özel raf aralığı aktif.';
+                } else {
+                    infoDiv.textContent = `Net Raf Aralığı: ${defaultGap.toFixed(1)} mm`;
+                }
+            });
         });
     }
     
@@ -1033,26 +1056,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <input type="number" class="sec-h" value="400">
                     </div>
                     <div class="input-group-col">
-                        <label>Kapak Sayısı (0 ise boş)</label>
-                        <input type="number" class="sec-door-qty" value="2">
+                        <label>Sütun (Orta Dikme) Sayısı</label>
+                        <input type="number" class="sec-cols-count" value="1" min="1" max="5">
                     </div>
                 </div>
-                <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
-                    <div class="input-group-col">
-                        <label>Raf Sayısı</label>
-                        <input type="number" class="sec-shelf-qty" value="1">
-                    </div>
-                    <div class="input-group-col">
-                        <label>Raf/Kapak İçerlek Payı</label>
-                        <input type="number" class="sec-gap" value="20">
-                    </div>
-                </div>
-                <div class="modal-grid">
-                    <div class="input-group-col">
-                        <label>Özel Raf Aralıkları (Virgülle, Örn: 300, 250)</label>
-                        <input type="text" class="sec-custom-shelves" placeholder="Boş bırakılırsa eşit bölünür">
-                        <div class="shelf-gap-info" style="color: var(--success); font-size: 0.85rem; font-weight: 500; margin-top: 5px;"></div>
-                    </div>
+                <div class="columns-container" id="columns-container-${sectionId}" style="margin-top: 15px; display:flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto;">
+                    <!-- Sütunlar buraya eklenecek -->
                 </div>
             </div>
         `;
@@ -1060,16 +1069,75 @@ document.addEventListener('DOMContentLoaded', () => {
         container.insertAdjacentHTML('beforeend', sectionHtml);
         
         const newCard = document.getElementById(`section-${sectionId}`);
-        newCard.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', () => {
-                if (typeof window.update3DModel === 'function') window.update3DModel();
-                window.updateShelfGapInfo();
+        const colCountInput = newCard.querySelector('.sec-cols-count');
+        const colsContainer = newCard.querySelector('.columns-container');
+        
+        const renderColumns = () => {
+            const count = parseInt(colCountInput.value) || 1;
+            colsContainer.innerHTML = '';
+            for(let i=1; i<=count; i++) {
+                colsContainer.insertAdjacentHTML('beforeend', `
+                    <div class="column-card" style="flex: 1; min-width: 250px; background: #fff; border: 1px solid var(--border-light); padding: 10px; border-radius: 6px;">
+                        <h5 style="margin-bottom: 10px; color: var(--primary); font-size: 0.9rem;">${i}. Sütun Ayarları</h5>
+                        <div class="input-group-col">
+                            <label>Raf Sayısı</label>
+                            <input type="number" class="col-shelf-qty" value="0">
+                        </div>
+                        <div class="modal-grid" style="grid-template-columns: 1fr 1fr; margin-top: 5px;">
+                            <div class="input-group-col">
+                                <label title="Yan yana sağa-sola açılan kapak">Yan Yana Kapak</label>
+                                <input type="number" class="col-door-qty" value="1">
+                            </div>
+                            <div class="input-group-col">
+                                <label title="Üst üste dizilen çekmece/kapak">Üst Üste Kapak</label>
+                                <input type="number" class="col-stack-qty" value="1">
+                            </div>
+                        </div>
+                        
+                        <!-- Gelişmiş Ayarlar Butonu -->
+                        <button class="btn-secondary toggle-adv-btn" style="width: 100%; margin-top: 10px; font-size: 0.75rem; padding: 5px;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">Gelişmiş Ayarları (Özel Ölçü) Aç</button>
+                        
+                        <div class="adv-settings" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc;">
+                            <div class="input-group-col">
+                                <label>İçerlek Payı (Gap)</label>
+                                <input type="number" class="col-gap" value="20">
+                            </div>
+                            <div class="input-group-col">
+                                <label>Özel Sütun Genişliği (Boş = Eşit)</label>
+                                <input type="number" class="col-custom-w" placeholder="Örn: 600">
+                            </div>
+                            <div class="input-group-col">
+                                <label>Özel Kapak/Çekmece Boyları</label>
+                                <input type="text" class="col-custom-drawers" placeholder="Örn: 200, 200, 400">
+                            </div>
+                            <div class="input-group-col">
+                                <label>Özel Raf Aralıkları</label>
+                                <input type="text" class="col-custom-shelves" placeholder="Örn: 300, 250">
+                            </div>
+                        </div>
+                        <div class="shelf-gap-info" style="color: var(--success); font-size: 0.8rem; font-weight: 500; margin-top: 10px;"></div>
+                    </div>
+                `);
+            }
+            
+            colsContainer.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', () => {
+                    if (typeof window.update3DModel === 'function') window.update3DModel();
+                    window.updateShelfGapInfo();
+                });
             });
+            window.updateShelfGapInfo();
+            if (typeof window.update3DModel === 'function') window.update3DModel();
+        };
+
+        colCountInput.addEventListener('input', renderColumns);
+        newCard.querySelector('.sec-h').addEventListener('input', () => {
+            if (typeof window.update3DModel === 'function') window.update3DModel();
+            window.updateShelfGapInfo();
         });
         
-        if (typeof window.update3DModel === 'function') window.update3DModel();
+        renderColumns(); // İlk eklemede sütunları oluştur
         updateSectionLabels();
-        window.updateShelfGapInfo();
     }
     
     window.removeSection = function(id) {
@@ -1105,9 +1173,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const sections = Array.from(document.querySelectorAll('.section-card')).map(card => {
             return {
                 h: parseFloat(card.querySelector('.sec-h').value) || 0,
-                doorQty: parseInt(card.querySelector('.sec-door-qty').value) || 0,
-                shelfQty: parseInt(card.querySelector('.sec-shelf-qty').value) || 0,
-                gap: parseFloat(card.querySelector('.sec-gap').value) || 20
+                colsCount: parseInt(card.querySelector('.sec-cols-count').value) || 1,
+                columns: Array.from(card.querySelectorAll('.column-card')).map(col => {
+                    return {
+                        shelfQty: parseInt(col.querySelector('.col-shelf-qty').value) || 0,
+                        doorQty: parseInt(col.querySelector('.col-door-qty').value) || 1,
+                        stackQty: parseInt(col.querySelector('.col-stack-qty').value) || 1,
+                        gap: parseFloat(col.querySelector('.col-gap').value) || 20,
+                        customW: col.querySelector('.col-custom-w').value,
+                        customDrawers: col.querySelector('.col-custom-drawers').value,
+                        customShelves: col.querySelector('.col-custom-shelves').value
+                    };
+                })
             };
         });
 
@@ -1132,18 +1209,73 @@ document.addEventListener('DOMContentLoaded', () => {
             addPartRow({ name: "Sabit Raf (Ara Bölücü)", h: internalW, w: d, q: sections.length - 1, rot: true, b: [false, true, false, false] });
         }
 
-        // 4. Raflar ve Kapaklar
+        // 4. Raflar, Kapaklar ve Orta Dikmeler (Sütunlara Göre)
         sections.forEach((sec, index) => {
-            if (sec.shelfQty > 0) {
-                const shelfD = d - sec.gap;
-                addPartRow({ name: `${index+1}. Bölüm Hareketli Raf`, h: internalW - 1, w: shelfD, q: sec.shelfQty, rot: true, b: [false, true, false, false] });
+            // Bölüm Net İç Boşluğu
+            let netH;
+            if (index === 0) {
+                netH = sec.h - (2 * thick);
+            } else {
+                netH = sec.h - thick;
             }
-            if (sec.doorQty > 0) {
-                const doorGap = 3; 
-                const doorH = sec.h - (doorGap * 2);
-                const doorW = (w / sec.doorQty) - doorGap;
-                addPartRow({ name: `${index+1}. Bölüm Kapak`, h: doorH, w: doorW, q: sec.doorQty, rot: true, b: [true, true, true, true] });
+
+            // Sütunlar Arası Orta Dikmeler
+            if (sec.colsCount > 1) {
+                const dikmeQty = sec.colsCount - 1;
+                addPartRow({ name: `${index+1}. Bölüm Orta Dikme`, h: netH, w: d, q: dikmeQty, rot: true, b: [false, true, false, false] });
             }
+
+            // Sütun Genişlikleri Hesaplama
+            const availableW = internalW - ((sec.colsCount - 1) * thick);
+            let customWTotal = 0;
+            let customCols = 0;
+            
+            sec.columns.forEach(col => {
+                if (col.customW && !isNaN(parseFloat(col.customW))) {
+                    customWTotal += parseFloat(col.customW);
+                    customCols++;
+                }
+            });
+            
+            const remainingW = availableW - customWTotal;
+            const defaultColW = remainingW / (sec.colsCount - customCols);
+
+            sec.columns.forEach((col, cIdx) => {
+                let colW = defaultColW;
+                if (col.customW && !isNaN(parseFloat(col.customW))) {
+                    colW = parseFloat(col.customW);
+                }
+                
+                // Raflar (Sütun içindeki)
+                if (col.shelfQty > 0) {
+                    const shelfD = d - col.gap;
+                    addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Raf`, h: colW - 1, w: shelfD, q: col.shelfQty, rot: true, b: [false, true, false, false] });
+                }
+                
+                // Kapaklar / Çekmeceler
+                if (col.doorQty > 0 && col.stackQty > 0) {
+                    const doorGap = 3;
+                    
+                    // Kapak Genişliği (Oransal Dağılım)
+                    const doorTotalW = (w * (colW / availableW)); 
+                    const doorW = (doorTotalW / col.doorQty) - doorGap;
+
+                    // Özel Çekmece Yükseklikleri
+                    let customDrawers = [];
+                    if (col.customDrawers && col.customDrawers.trim() !== "") {
+                        customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+                    }
+
+                    for (let stack = 0; stack < col.stackQty; stack++) {
+                        let doorH = (sec.h / col.stackQty) - (doorGap * 2); // Eşit dağılım
+                        if (customDrawers[stack]) {
+                            doorH = customDrawers[stack] - (doorGap * 2); // Özel ölçü
+                        }
+                        
+                        addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Kapak`, h: doorH, w: doorW, q: col.doorQty, rot: true, b: [true, true, true, true] });
+                    }
+                }
+            });
         });
 
         document.getElementById('module-wizard-modal').style.display = 'none';
