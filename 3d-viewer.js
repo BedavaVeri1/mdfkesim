@@ -216,11 +216,38 @@ function update3DModel() {
         let currentColX = -(innerW / 2); // İçeriden başlangıç (Raflar ve Dikmeler için)
         let currentOuterColX = -(w / 2); // Dışarıdan başlangıç (Kapaklar için)
         
-        // Dikey boşluk (Bölüm dış sınırları)
-        const isBottomSec = (index === 0);
-        const isTopSec = (index === sections.length - 1);
-        const bottomGap = isBottomSec ? 0 : 2;
-        const topGap = isTopSec ? 0 : 2;
+        // Dikey boşluk (Bölüm dış sınırları) akıllı hesaplama
+        const prevSec = index > 0 ? sections[index - 1] : null;
+        const nextSec = index < sections.length - 1 ? sections[index + 1] : null;
+        
+        const prevSecHasDoors = prevSec ? prevSec.columns.some(c => c.doorQty > 0 && c.stackQty > 0) : false;
+        const nextSecHasDoors = nextSec ? nextSec.columns.some(c => c.doorQty > 0 && c.stackQty > 0) : false;
+
+        let bottomGap = 0;
+        let topGap = 0;
+        let sectionDoorTotalH = sec.h;
+        let sectionDoorAreaStart = currentOuterY;
+
+        if (index > 0) {
+            if (prevSecHasDoors) {
+                sectionDoorTotalH += (thick / 2);
+                sectionDoorAreaStart -= (thick / 2);
+                bottomGap = 2;
+            } else {
+                sectionDoorTotalH += thick;
+                sectionDoorAreaStart -= thick;
+                bottomGap = 0;
+            }
+        }
+
+        if (index < sections.length - 1) {
+            if (nextSecHasDoors) {
+                sectionDoorTotalH -= (thick / 2);
+                topGap = 2;
+            } else {
+                topGap = 0;
+            }
+        }
 
         sec.columns.forEach((col, cIdx) => {
             let colW = defaultColW;
@@ -277,9 +304,8 @@ function update3DModel() {
                 const doorW = usableW / col.doorQty;
                 
                 // Dikey Çekmece Hesaplaması
-                const doorTotalH = sec.h;
                 const innerGapsH = (col.stackQty - 1) * 4;
-                const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
+                const usableH = sectionDoorTotalH - bottomGap - topGap - innerGapsH;
                 const defaultDoorH = usableH / col.stackQty;
                 
                 let customDrawers = [];
@@ -287,7 +313,7 @@ function update3DModel() {
                     customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
                 }
 
-                let doorCurrentY = currentOuterY + bottomGap;
+                let doorCurrentY = sectionDoorAreaStart + bottomGap;
 
                 for (let stack = 0; stack < col.stackQty; stack++) {
                     let doorH = defaultDoorH;

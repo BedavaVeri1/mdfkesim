@@ -714,8 +714,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Yazı
                 if (dw > 4 && dh > 4) {
-                    const textName = b.name.substring(0, 10);
-                    const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH}(R)` : `${b.finishW}x${b.finishH}`;
+                    const textName = b.name; // İsim artık kısaltılmıyor
+                    const dimText = b.fit.rotated ? `${b.finishH}x${b.finishW}(R)` : `${b.finishH}x${b.finishW}`;
                     const fullText = `${textName} ${dimText}`;
 
                     ctx.save();
@@ -957,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.text(part.name, x + 10, y + 15);
 
             doc.setFontSize(22);
-            doc.text(`${part.finishW} x ${part.finishH}`, x + 10, y + 30);
+            doc.text(`${part.finishH} x ${part.finishW}`, x + 10, y + 30);
 
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
@@ -1287,7 +1287,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const doorW = usableW / col.doorQty;
 
                     // Dikey Kapak/Çekmece Yükseklik Hesaplaması
-                    const doorTotalH = sec.h;
+                    let doorTotalH = sec.h;
+                    if (sections.length > 1) {
+                        if (index === 0) {
+                            doorTotalH -= (thick / 2);
+                        } else if (index === sections.length - 1) {
+                            doorTotalH += (thick / 2);
+                        }
+                    }
+                    
                     const innerGapsH = (col.stackQty - 1) * 4; // İç çekmeceler arası 4mm sabit derz
                     const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
                     const defaultDoorH = usableH / col.stackQty;
