@@ -1255,11 +1255,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const remainingW = availableW - customWTotal;
             const defaultColW = remainingW / (sec.colsCount - customCols);
             
-            // Dikey boşluk hesaplaması (Bölüm bazlı)
-            const isBottomSec = (index === 0);
-            const isTopSec = (index === sections.length - 1);
-            const bottomGap = isBottomSec ? 0 : 2;
-            const topGap = isTopSec ? 0 : 2;
+            // --- Dikey boşluk ve Komşu Kapak Kontrolü (Akıllı Tam Binme) ---
+            const prevSec = index > 0 ? sections[index - 1] : null;
+            const nextSec = index < sections.length - 1 ? sections[index + 1] : null;
+            
+            const prevSecHasDoors = prevSec ? prevSec.columns.some(c => c.doorQty > 0 && c.stackQty > 0) : false;
+            const nextSecHasDoors = nextSec ? nextSec.columns.some(c => c.doorQty > 0 && c.stackQty > 0) : false;
+
+            let bottomGap = 0;
+            let topGap = 0;
+            let sectionDoorTotalH = sec.h;
+
+            if (index > 0) {
+                if (prevSecHasDoors) {
+                    sectionDoorTotalH += (thick / 2);
+                    bottomGap = 2;
+                } else {
+                    sectionDoorTotalH += thick;
+                    bottomGap = 0;
+                }
+            }
+
+            if (index < sections.length - 1) {
+                if (nextSecHasDoors) {
+                    sectionDoorTotalH -= (thick / 2);
+                    topGap = 2;
+                } else {
+                    topGap = 0;
+                }
+            }
 
             sec.columns.forEach((col, cIdx) => {
                 let colW = defaultColW;
@@ -1267,50 +1291,95 @@ document.addEventListener('DOMContentLoaded', () => {
                     colW = parseFloat(col.customW);
                 }
                 
-                // Raflar (Sütun içindeki)
-                if (col.shelfQty > 0) {
-                    const shelfD = d - col.gap;
-                    addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Raf`, h: colW - 1, w: shelfD, q: col.shelfQty, rot: true, b: [false, true, false, false] });
+                // 1. Kapakların Sınır (Çarpışma) Noktalarını Hesapla
+                let doorBoundaries = [];
+                let customDrawers = [];
+                if (col.customDrawers && col.customDrawers.trim() !== "") {
+                    customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
                 }
                 
-                // Kapaklar / Çekmeceler
+                let doorTotalH = sectionDoorTotalH;
+                const innerGapsH = (col.stackQty - 1) * 4;
+                const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
+                const defaultDoorH = usableH / col.stackQty;
+
+                if (col.doorQty > 0 && col.stackQty > 1) {
+                    let doorStartLocalY = 0;
+                    if (index > 0) {
+                        doorStartLocalY = prevSecHasDoors ? (-thick / 2) : -thick;
+                    } else {
+                        doorStartLocalY = -thick; // Baza üstü rafın tam altına iner
+                    }
+                    doorStartLocalY += bottomGap;
+                    
+                    let currentY = doorStartLocalY;
+                    for (let stack = 0; stack < col.stackQty - 1; stack++) {
+                        let doorH = customDrawers[stack] ? customDrawers[stack] : defaultDoorH;
+                        currentY += doorH;
+                        doorBoundaries.push(currentY + 2); // 4mm derzin tam ortası
+                        currentY += 4;
+                    }
+                }
+
+                // 2. Rafları Hesapla ve Kapak Basıyorsa Tam Boy Kes
+                if (col.shelfQty > 0) {
+                    let customShelves = [];
+                    if (col.customShelves && col.customShelves.trim() !== "") {
+                        customShelves = col.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+                    }
+                    
+                    const totalShelfThick = col.shelfQty * thick;
+                    const netEmptySpace = netH - totalShelfThick;
+                    const defaultShelfGap = netEmptySpace / (col.shelfQty + 1);
+                    
+                    let shelfCurrentY = 0;
+                    let fullDepthCount = 0;
+                    let recessedCount = 0;
+                    
+                    for (let i = 0; i < col.shelfQty; i++) {
+                        let thisGap = customShelves[i] ? customShelves[i] : defaultShelfGap;
+                        shelfCurrentY += thisGap;
+                        
+                        let shelfCenterY = shelfCurrentY + (thick / 2);
+                        
+                        let isDoorBoundary = false;
+                        for (let b of doorBoundaries) {
+                            if (Math.abs(shelfCenterY - b) <= (thick / 2) + 4) {
+                                isDoorBoundary = true;
+                                break;
+                            }
+                        }
+                        
+                        if (isDoorBoundary) {
+                            fullDepthCount++;
+                        } else {
+                            recessedCount++;
+                        }
+                        shelfCurrentY += thick;
+                    }
+
+                    if (fullDepthCount > 0) {
+                        addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Raf (Kapak Basan)`, h: colW - 1, w: d, q: fullDepthCount, rot: true, b: [false, true, false, false] });
+                    }
+                    if (recessedCount > 0) {
+                        addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun İç Raf`, h: colW - 1, w: d - col.gap, q: recessedCount, rot: true, b: [false, true, false, false] });
+                    }
+                }
+                
+                // 3. Kapakları / Çekmeceleri Listeye Ekle
                 if (col.doorQty > 0 && col.stackQty > 0) {
-                    // Yatay Boşluk Hesaplaması (Sütun bazlı)
                     const isLeftCol = (cIdx === 0);
                     const isRightCol = (cIdx === sec.colsCount - 1);
                     const leftGap = isLeftCol ? 0 : 2;
                     const rightGap = isRightCol ? 0 : 2;
                     
                     const doorTotalW = (w * (colW / availableW)); 
-                    const innerGapsW = (col.doorQty - 1) * 4; // İç kapaklar arası 4mm sabit derz
+                    const innerGapsW = (col.doorQty - 1) * 4; 
                     const usableW = doorTotalW - leftGap - rightGap - innerGapsW;
                     const doorW = usableW / col.doorQty;
 
-                    // Dikey Kapak/Çekmece Yükseklik Hesaplaması
-                    let doorTotalH = sec.h;
-                    if (sections.length > 1) {
-                        if (index === 0) {
-                            doorTotalH -= (thick / 2);
-                        } else if (index === sections.length - 1) {
-                            doorTotalH += (thick / 2);
-                        }
-                    }
-                    
-                    const innerGapsH = (col.stackQty - 1) * 4; // İç çekmeceler arası 4mm sabit derz
-                    const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
-                    const defaultDoorH = usableH / col.stackQty;
-
-                    let customDrawers = [];
-                    if (col.customDrawers && col.customDrawers.trim() !== "") {
-                        customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-                    }
-
                     for (let stack = 0; stack < col.stackQty; stack++) {
-                        let doorH = defaultDoorH;
-                        if (customDrawers[stack]) {
-                            doorH = customDrawers[stack];
-                        }
-                        
+                        let doorH = customDrawers[stack] ? customDrawers[stack] : defaultDoorH;
                         addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Kapak/Çekmece`, h: doorH, w: doorW, q: col.doorQty, rot: true, b: [true, true, true, true] });
                     }
                 }

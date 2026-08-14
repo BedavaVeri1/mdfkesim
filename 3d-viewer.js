@@ -255,17 +255,45 @@ function update3DModel() {
                 colW = parseFloat(col.customW);
             }
             
+            // 1. Kapakların Sınır (Çarpışma) Noktalarını Hesapla
+            let doorBoundaries = [];
+            let customDrawers = [];
+            if (col.customDrawers && col.customDrawers.trim() !== "") {
+                customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+            }
+            
+            let doorTotalH = sectionDoorTotalH;
+            const innerGapsH = (col.stackQty - 1) * 4;
+            const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
+            const defaultDoorH = usableH / col.stackQty;
+
+            if (col.doorQty > 0 && col.stackQty > 1) {
+                let doorStartLocalY = 0;
+                if (index > 0) {
+                    doorStartLocalY = prevSecHasDoors ? (-thick / 2) : -thick;
+                } else {
+                    doorStartLocalY = -thick;
+                }
+                doorStartLocalY += bottomGap;
+                
+                let currentY = doorStartLocalY;
+                for (let stack = 0; stack < col.stackQty - 1; stack++) {
+                    let doorH = customDrawers[stack] ? customDrawers[stack] : defaultDoorH;
+                    currentY += doorH;
+                    doorBoundaries.push(currentY + 2); 
+                    currentY += 4;
+                }
+            }
+            
             // --- RAFLAR ---
             if (col.shelfQty > 0) {
-                const shelfD = d - col.gap; 
-                const shelfZ = -(d / 2) + (shelfD / 2);
-                
                 let customHeights = [];
                 if (col.customShelves.trim() !== "") {
                     customHeights = col.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
                 }
                 
                 let shelfCurrentY = currentInnerY;
+                let localShelfCurrentY = 0; 
                 const totalShelfThick = col.shelfQty * thick;
                 const netEmptySpace = netH - totalShelfThick;
                 const defaultGap = netEmptySpace / (col.shelfQty + 1);
@@ -278,11 +306,28 @@ function update3DModel() {
                         thisGap = customHeights[i];
                     }
                     shelfCurrentY += thisGap;
+                    localShelfCurrentY += thisGap;
                     
                     const yPos = shelfCurrentY + (thick / 2);
+                    const localCenterY = localShelfCurrentY + (thick / 2);
+                    
+                    let isDoorBoundary = false;
+                    for (let b of doorBoundaries) {
+                        if (Math.abs(localCenterY - b) <= (thick / 2) + 4) {
+                            isDoorBoundary = true;
+                            break;
+                        }
+                    }
+                    
+                    const actualGap = isDoorBoundary ? 0 : col.gap;
+                    const shelfD = d - actualGap;
+                    const shelfZ = -(d / 2) + (shelfD / 2);
+                    
                     cabinetGroup.add(createPanel(colW, thick, shelfD, shelfCenterX, yPos, shelfZ));
                     
                     shelfCurrentY += thick; 
+                    localShelfCurrentY += thick;
+
                 }
             }
 
