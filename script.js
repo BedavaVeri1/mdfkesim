@@ -1174,11 +1174,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="modal-grid" style="grid-template-columns: 1fr 1fr; margin-top: 5px;">
                             <div class="input-group-col">
                                 <label title="Yan yana sağa-sola açılan kapak">Yan Yana Kapak</label>
-                                <input type="number" class="col-door-qty" value="1">
+                                <input type="number" class="col-door-qty" value="0">
                             </div>
                             <div class="input-group-col">
                                 <label title="Üst üste dizilen çekmece/kapak">Üst Üste Kapak</label>
-                                <input type="number" class="col-stack-qty" value="1">
+                                <input type="number" class="col-stack-qty" value="0">
                             </div>
                             <div class="input-group-col">
                                 <label title="Alttan üste kaç tanesi çekmece olacak?">Çekmece Sayısı</label>

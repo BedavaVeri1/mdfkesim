@@ -65,7 +65,7 @@ function init3DViewer() {
     window.addEventListener('resize', onWindowResize, false);
 
     // Canlı önizleme için input eventlerini dinle
-    const inputs = ['mod-type', 'mod-w', 'mod-h', 'mod-d', 'mod-thick', 'mod-shelf-qty', 'mod-shelf-gap', 'mod-door-qty', 'mod-door-gap'];
+    const inputs = ['mod-type', 'mod-w', 'mod-h', 'mod-d', 'mod-thick', 'mod-shelf-qty', 'mod-shelf-gap', 'mod-door-qty', 'mod-door-gap', 'mod-base-type', 'mod-base-h'];
     inputs.forEach(id => {
         const el = document.getElementById(id);
         if(el) {
