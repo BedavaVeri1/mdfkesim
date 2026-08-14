@@ -107,8 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Varsayılan Değerler
         const name = data.name || '';
-        const w = data.w || '';
-        const h = data.h || '';
+        const w = (data.w && !isNaN(data.w)) ? Math.round(Number(data.w)) : (data.w || '');
+        const h = (data.h && !isNaN(data.h)) ? Math.round(Number(data.h)) : (data.h || '');
         const q = data.q || 1;
         const rot = data.rot !== undefined ? data.rot : true; // Default rotate allowed
         // Banding: [Top, Right, Bottom, Left]
@@ -840,8 +840,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 tCtx.textBaseline = 'middle';
                 
                 if (w > 4 && h > 4) {
-                    const textName = b.name.substring(0, 12);
-                    const dimText = b.fit.rotated ? `${b.finishW}x${b.finishH}(R)` : `${b.finishW}x${b.finishH}`;
+                    const textName = b.name;
+                    const cutBoy = b.fit.rotated ? b.finishW : b.finishH;
+                    const cutEn = b.fit.rotated ? b.finishH : b.finishW;
+                    const dimText = b.fit.rotated ? `${cutBoy}x${cutEn}(R)` : `${cutBoy}x${cutEn}`;
                     const fullText = `${textName} ${dimText}`;
                     
                     tCtx.save();
@@ -957,7 +959,9 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.text(part.name, x + 10, y + 15);
 
             doc.setFontSize(22);
-            doc.text(`${part.finishH} x ${part.finishW}`, x + 10, y + 30);
+            const cutBoy = part.fit.rotated ? part.finishW : part.finishH;
+            const cutEn = part.fit.rotated ? part.finishH : part.finishW;
+            doc.text(`${cutBoy} x ${cutEn}`, x + 10, y + 30);
 
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
