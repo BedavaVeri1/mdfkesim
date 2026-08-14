@@ -1246,6 +1246,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const remainingW = availableW - customWTotal;
             const defaultColW = remainingW / (sec.colsCount - customCols);
+            
+            // Dikey boşluk hesaplaması (Bölüm bazlı)
+            const isBottomSec = (index === 0);
+            const isTopSec = (index === sections.length - 1);
+            const bottomGap = isBottomSec ? 0 : 2;
+            const topGap = isTopSec ? 0 : 2;
 
             sec.columns.forEach((col, cIdx) => {
                 let colW = defaultColW;
@@ -1261,25 +1267,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Kapaklar / Çekmeceler
                 if (col.doorQty > 0 && col.stackQty > 0) {
-                    const doorGap = 3;
+                    // Yatay Boşluk Hesaplaması (Sütun bazlı)
+                    const isLeftCol = (cIdx === 0);
+                    const isRightCol = (cIdx === sec.colsCount - 1);
+                    const leftGap = isLeftCol ? 0 : 2;
+                    const rightGap = isRightCol ? 0 : 2;
                     
-                    // Kapak Genişliği (Oransal Dağılım)
                     const doorTotalW = (w * (colW / availableW)); 
-                    const doorW = (doorTotalW / col.doorQty) - doorGap;
+                    const innerGapsW = (col.doorQty - 1) * 4; // İç kapaklar arası 4mm sabit derz
+                    const usableW = doorTotalW - leftGap - rightGap - innerGapsW;
+                    const doorW = usableW / col.doorQty;
 
-                    // Özel Çekmece Yükseklikleri
+                    // Dikey Kapak/Çekmece Yükseklik Hesaplaması
+                    const doorTotalH = sec.h;
+                    const innerGapsH = (col.stackQty - 1) * 4; // İç çekmeceler arası 4mm sabit derz
+                    const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
+                    const defaultDoorH = usableH / col.stackQty;
+
                     let customDrawers = [];
                     if (col.customDrawers && col.customDrawers.trim() !== "") {
                         customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
                     }
 
                     for (let stack = 0; stack < col.stackQty; stack++) {
-                        let doorH = (sec.h / col.stackQty) - (doorGap * 2); // Eşit dağılım
+                        let doorH = defaultDoorH;
                         if (customDrawers[stack]) {
-                            doorH = customDrawers[stack] - (doorGap * 2); // Özel ölçü
+                            doorH = customDrawers[stack];
                         }
                         
-                        addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Kapak`, h: doorH, w: doorW, q: col.doorQty, rot: true, b: [true, true, true, true] });
+                        addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Kapak/Çekmece`, h: doorH, w: doorW, q: col.doorQty, rot: true, b: [true, true, true, true] });
                     }
                 }
             });

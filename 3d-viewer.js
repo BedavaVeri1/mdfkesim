@@ -211,6 +211,12 @@ function update3DModel() {
         // X ekseninde başlangıç noktaları
         let currentColX = -(innerW / 2); // İçeriden başlangıç (Raflar ve Dikmeler için)
         let currentOuterColX = -(w / 2); // Dışarıdan başlangıç (Kapaklar için)
+        
+        // Dikey boşluk (Bölüm dış sınırları)
+        const isBottomSec = (index === 0);
+        const isTopSec = (index === sections.length - 1);
+        const bottomGap = isBottomSec ? 0 : 2;
+        const topGap = isTopSec ? 0 : 2;
 
         sec.columns.forEach((col, cIdx) => {
             let colW = defaultColW;
@@ -253,36 +259,47 @@ function update3DModel() {
             const doorTotalW = (w * (colW / availableW)); 
             
             if (col.doorQty > 0 && col.stackQty > 0) {
-                const doorGap = 3;
                 const doorThick = 18; 
                 const doorZ = (d / 2) + (doorThick / 2); 
                 
-                const doorW = (doorTotalW - (doorGap * (col.doorQty + 1))) / col.doorQty;
+                // Yatay Kapak Hesaplaması
+                const isLeftCol = (cIdx === 0);
+                const isRightCol = (cIdx === sec.colsCount - 1);
+                const leftGap = isLeftCol ? 0 : 2;
+                const rightGap = isRightCol ? 0 : 2;
+                
+                const innerGapsW = (col.doorQty - 1) * 4;
+                const usableW = doorTotalW - leftGap - rightGap - innerGapsW;
+                const doorW = usableW / col.doorQty;
+                
+                // Dikey Çekmece Hesaplaması
+                const doorTotalH = sec.h;
+                const innerGapsH = (col.stackQty - 1) * 4;
+                const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
+                const defaultDoorH = usableH / col.stackQty;
                 
                 let customDrawers = [];
                 if (col.customDrawers && col.customDrawers.trim() !== "") {
                     customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
                 }
 
-                let doorCurrentY = currentOuterY;
+                let doorCurrentY = currentOuterY + bottomGap;
 
                 for (let stack = 0; stack < col.stackQty; stack++) {
-                    let stackH = (sec.h / col.stackQty);
+                    let doorH = defaultDoorH;
                     if (customDrawers[stack]) {
-                        stackH = customDrawers[stack];
+                        doorH = customDrawers[stack];
                     }
                     
-                    const doorH = stackH - (doorGap * 2);
-                    const doorCenterY = doorCurrentY + (stackH / 2);
-                    
-                    let doorCurrentX = currentOuterColX + doorGap + (doorW / 2);
+                    const doorCenterY = doorCurrentY + (doorH / 2);
+                    let doorCurrentX = currentOuterColX + leftGap + (doorW / 2);
                     
                     for (let j = 0; j < col.doorQty; j++) {
                         cabinetGroup.add(createPanel(doorW, doorH, doorThick, doorCurrentX, doorCenterY, doorZ, true));
-                        doorCurrentX += doorW + doorGap;
+                        doorCurrentX += doorW + 4; // İç derz (yan yana)
                     }
                     
-                    doorCurrentY += stackH;
+                    doorCurrentY += doorH + 4; // İç derz (üst üste)
                 }
             }
 
