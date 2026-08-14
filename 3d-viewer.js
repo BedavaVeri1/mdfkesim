@@ -8,9 +8,11 @@ const MATERIAL_PANEL = new THREE.MeshStandardMaterial({
 });
 
 const MATERIAL_DOOR = new THREE.MeshStandardMaterial({
-    color: 0xe6cdab, // Raflardan hafifçe farklı ahşap tonu
+    color: 0xe6cdab,
     roughness: 0.9,
-    metalness: 0.05
+    metalness: 0.05,
+    transparent: true,
+    opacity: 0.5
 });
 
 function init3DViewer() {
@@ -74,16 +76,47 @@ function init3DViewer() {
     update3DModel();
     animate();
     
+    // Kapak Şeffaflık Aç/Kapat Butonu
+    const btnToggle = document.getElementById('btn-toggle-door-transparency');
+    let isDoorTransparent = true;
+    if (btnToggle) {
+        btnToggle.addEventListener('click', () => {
+            isDoorTransparent = !isDoorTransparent;
+            MATERIAL_DOOR.transparent = isDoorTransparent;
+            MATERIAL_DOOR.opacity = isDoorTransparent ? 0.5 : 1.0;
+            MATERIAL_DOOR.needsUpdate = true;
+            
+            if (isDoorTransparent) {
+                btnToggle.innerHTML = '<i class="fas fa-eye"></i> Kapakları Katı Yap';
+            } else {
+                btnToggle.innerHTML = '<i class="fas fa-eye-slash"></i> Kapakları Şeffaf Yap';
+            }
+        });
+    }
+
     // Fotoğraf İndirme Butonu
     const btnImg = document.getElementById('btn-download-img');
     if (btnImg) {
         btnImg.addEventListener('click', () => {
-            // Animasyon render'ını beklemeden zorla çizdirip fotosunu çekiyoruz
+            // İndirirken zorla mat (katı) yap
+            const previousTransparent = MATERIAL_DOOR.transparent;
+            const previousOpacity = MATERIAL_DOOR.opacity;
+            
+            MATERIAL_DOOR.transparent = false;
+            MATERIAL_DOOR.opacity = 1.0;
+            MATERIAL_DOOR.needsUpdate = true;
+            
             renderer.render(scene, camera);
+            
             const link = document.createElement('a');
             link.download = 'MDF_Tasarim.png';
             link.href = renderer.domElement.toDataURL('image/png');
             link.click();
+            
+            // İndirme bittikten sonra eski haline getir
+            MATERIAL_DOOR.transparent = previousTransparent;
+            MATERIAL_DOOR.opacity = previousOpacity;
+            MATERIAL_DOOR.needsUpdate = true;
         });
     }
 

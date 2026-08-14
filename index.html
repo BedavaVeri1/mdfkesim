@@ -224,7 +224,10 @@
                 <!-- Sağ Taraf: 3D Önizleme -->
                 <div class="modal-3d-side">
                     <div id="module-3d-container"></div>
-                    <div class="viewer-hint"><i class="fas fa-mouse"></i> Döndürmek için sürükle, tekerlekle yaklaş. Kapaklar cam gibi yarı saydamdır.</div>
+                    <div class="viewer-hint" style="display:flex; justify-content:center; align-items:center; gap:10px;">
+                        <span><i class="fas fa-mouse"></i> Döndürmek için sürükle, yaklaş.</span>
+                        <button id="btn-toggle-door-transparency" class="btn-secondary" style="margin:0; padding: 4px 8px; font-size: 0.75rem;"><i class="fas fa-eye"></i> Kapakları Katı Yap</button>
+                    </div>
                     <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
                         <button id="btn-download-img" class="btn-primary" style="margin:0; font-size: 0.85rem;"><i class="fas fa-camera"></i> Fotoğraf İndir (Müşteriye At)</button>
                         <button id="btn-download-3d" class="btn-secondary" style="margin:0; font-size: 0.85rem; border: 1px solid var(--border-light);"><i class="fas fa-cube"></i> 3D Dosyası İndir</button>
