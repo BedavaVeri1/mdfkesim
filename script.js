@@ -1227,12 +1227,25 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const baseType = document.getElementById('mod-base-type') ? document.getElementById('mod-base-type').value : 'normal';
+        
         const internalW = w - (2 * thick);
-        const sideH = overallH - baseH;
+        let sideH;
+        
+        if (baseType === 'closed') {
+            sideH = overallH - 7; // 7mm takoz payı
+        } else {
+            sideH = overallH - baseH;
+        }
 
         // 1. Yan Dikmeler
         addPartRow({ name: "Sağ Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
         addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        
+        // 1.5. Kapalı Baza Parçası
+        if (baseType === 'closed' && baseH > 7) {
+            addPartRow({ name: "Ön Baza", h: baseH - 7, w: internalW, q: 1, rot: true, b: [false, true, false, false] });
+        }
 
         // 2. Alt ve Üst Tablalar
         addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });

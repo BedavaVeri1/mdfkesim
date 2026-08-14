@@ -147,33 +147,50 @@ function update3DModel() {
 
     if (w <= 0 || overallH <= 0 || d <= 0 || sections.length === 0) return;
 
-    const sideH = overallH - baseH;
+    const baseType = document.getElementById('mod-base-type') ? document.getElementById('mod-base-type').value : 'normal';
+    
+    let sideH = overallH - baseH;
+    let sideY = baseH + (sideH / 2);
+    
+    if (baseType === 'closed') {
+        sideH = overallH - 7;
+        sideY = 7 + (sideH / 2);
+    }
+
     const innerW = w - (2 * thick);
     
-    // --- 0. AYAKLAR (BAZA) ---
+    // --- 0. AYAKLAR VEYA BAZA ---
     if (baseH > 0) {
-        const legMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 });
-        const legW = 50; const legD = 50;
-        const legY = baseH / 2;
-        const legMarginX = (w / 2) - 40;
-        const legMarginZ = (d / 2) - 40;
-        
-        const positions = [
-            [-legMarginX, legY, -legMarginZ],
-            [legMarginX, legY, -legMarginZ],
-            [-legMarginX, legY, legMarginZ],
-            [legMarginX, legY, legMarginZ]
-        ];
-        
-        positions.forEach(pos => {
-            const legMesh = new THREE.Mesh(new THREE.BoxGeometry(legW, baseH, legD), legMaterial);
-            legMesh.position.set(...pos);
-            cabinetGroup.add(legMesh);
-        });
+        if (baseType === 'normal') {
+            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 });
+            const legW = 50; const legD = 50;
+            const legY = baseH / 2;
+            const legMarginX = (w / 2) - 40;
+            const legMarginZ = (d / 2) - 40;
+            
+            const positions = [
+                [-legMarginX, legY, -legMarginZ],
+                [legMarginX, legY, -legMarginZ],
+                [-legMarginX, legY, legMarginZ],
+                [legMarginX, legY, legMarginZ]
+            ];
+            
+            positions.forEach(pos => {
+                const legMesh = new THREE.Mesh(new THREE.BoxGeometry(legW, baseH, legD), legMaterial);
+                legMesh.position.set(...pos);
+                cabinetGroup.add(legMesh);
+            });
+        } else if (baseType === 'closed') {
+            // Kapalı Baza (Ön Kapama MDF)
+            const plinthH = baseH - 7;
+            const plinthY = 7 + (plinthH / 2);
+            // Standart 20mm içeride görünüm
+            const plinthZ = (d / 2) - 20 - (thick / 2);
+            cabinetGroup.add(createPanel(innerW, plinthH, thick, 0, plinthY, plinthZ));
+        }
     }
 
     // --- 1. YAN DİKMELER ---
-    const sideY = baseH + (sideH / 2);
     const leftSideX = -(w / 2) + (thick / 2);
     const rightSideX = (w / 2) - (thick / 2);
     const sideZ = 0; 
