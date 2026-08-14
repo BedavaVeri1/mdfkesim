@@ -133,6 +133,7 @@ function update3DModel() {
                     shelfQty: isNaN(rawShelf) ? 0 : rawShelf,
                     doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                     stackQty: isNaN(rawStack) ? 0 : rawStack,
+                    drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
                     gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
                     customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
                     customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
@@ -405,13 +406,59 @@ function update3DModel() {
                     let doorH = doorHeights[stack];
                     
                     let doorCurrentX = currentOuterColX + leftGap;
+                    
+                    // Çekmece kontrolü
+                    const isDrawer = (col.stackQty - stack) <= col.drawerQty;
+                    
                     for (let dIdx = 0; dIdx < col.doorQty; dIdx++) {
                         let doorW = doorWidths[dIdx];
                         
                         const dCenterX = doorCurrentX + (doorW / 2);
                         const dCenterY = doorCurrentY + (doorH / 2);
                         
+                        // Klapayı Çiz (Şeffaf)
                         cabinetGroup.add(createPanel(doorW, doorH, doorThick, dCenterX, dCenterY, doorZ, true));
+                        
+                        // Eğer çekmece ise İç Kasayı Çiz
+                        if (isDrawer) {
+                            const boxDepth = d - 50;
+                            const boxHeight = doorH - 35;
+                            
+                            const innerOpeningW = colW / col.doorQty;
+                            const boxOuterWidth = innerOpeningW - 25;
+                            const boxInnerWidth = boxOuterWidth - (2 * thick);
+                            
+                            // Kasa Y ekseni (Klapanın merkezinden 35mm/2 kadar aşağıda)
+                            const boxCenterY = dCenterY - (35 / 2);
+                            
+                            // Kasa X başlangıcı (sütun içinden)
+                            const colStartX = currentColX + (innerOpeningW * dIdx);
+                            const boxCenterX = colStartX + (innerOpeningW / 2);
+                            
+                            // Z Ekseni (Klapanın hemen arkasından başlar)
+                            const klapaInnerZ = d / 2;
+                            const sideZ = klapaInnerZ - (boxDepth / 2);
+                            const frontZ = klapaInnerZ - (thick / 2);
+                            const backZ = klapaInnerZ - boxDepth + (thick / 2);
+                            
+                            // Sol Yan
+                            const leftSideX = boxCenterX - (boxOuterWidth / 2) + (thick / 2);
+                            cabinetGroup.add(createPanel(thick, boxHeight, boxDepth, leftSideX, boxCenterY, sideZ));
+                            
+                            // Sağ Yan
+                            const rightSideX = boxCenterX + (boxOuterWidth / 2) - (thick / 2);
+                            cabinetGroup.add(createPanel(thick, boxHeight, boxDepth, rightSideX, boxCenterY, sideZ));
+                            
+                            // Ön 
+                            cabinetGroup.add(createPanel(boxInnerWidth, boxHeight, thick, boxCenterX, boxCenterY, frontZ));
+                            
+                            // Arka
+                            cabinetGroup.add(createPanel(boxInnerWidth, boxHeight, thick, boxCenterX, boxCenterY, backZ));
+                            
+                            // Dip (Alt Taban)
+                            const bottomY = boxCenterY - (boxHeight / 2) + (thick / 2);
+                            cabinetGroup.add(createPanel(boxOuterWidth, thick, boxDepth, boxCenterX, bottomY, sideZ));
+                        }
                         
                         doorCurrentX += doorW + 4;
                     }

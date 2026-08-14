@@ -1103,6 +1103,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <label title="Üst üste dizilen çekmece/kapak">Üst Üste Kapak</label>
                                 <input type="number" class="col-stack-qty" value="1">
                             </div>
+                            <div class="input-group-col">
+                                <label title="Alttan üste kaç tanesi çekmece olacak?">Çekmece Sayısı</label>
+                                <input type="number" class="col-drawer-qty" value="0">
+                            </div>
                         </div>
                         
                         <!-- Gelişmiş Ayarlar Butonu -->
@@ -1202,6 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         shelfQty: isNaN(rawShelf) ? 0 : rawShelf,
                         doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                         stackQty: isNaN(rawStack) ? 0 : rawStack,
+                        drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
                         gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
                         customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
                         customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
@@ -1446,10 +1451,38 @@ document.addEventListener('DOMContentLoaded', () => {
                             wCounts[key] = (wCounts[key] || 0) + 1;
                         });
                         
+                        // stack = 0 en üst, stack = col.stackQty - 1 en alt
+                        // Çekmeceler alttan yukarıya doğru sayılır
+                        const isDrawer = (col.stackQty - stack) <= col.drawerQty;
+                        
                         for (let wStr in wCounts) {
                             let dw = parseFloat(wStr);
                             let qty = wCounts[wStr];
-                            addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Kapak/Çekmece`, h: doorH, w: dw, q: qty, rot: true, b: [true, true, true, true] });
+                            
+                            let nameKlapa = isDrawer ? `${index+1}. Bölüm ${cIdx+1}. Sütun Çekmece Klapası` : `${index+1}. Bölüm ${cIdx+1}. Sütun Kapak`;
+                            addPartRow({ name: nameKlapa, h: doorH, w: dw, q: qty, rot: true, b: [true, true, true, true] });
+                            
+                            if (isDrawer) {
+                                // Çekmece Kasa Derinliği (Z) = Modül Derinliği - 50mm
+                                const boxDepth = d - 50;
+                                // Çekmece Kasa Yüksekliği = Klapa Yüksekliği - 35mm
+                                const boxHeight = doorH - 35;
+                                
+                                // Çekmece kasanın gireceği net boşluk genişliği
+                                // Eğer yan yana çok kapak varsa (doorQty > 1), colW'yi ona böleriz (aralara dikme atılacağı varsayımıyla)
+                                const innerOpeningW = colW / col.doorQty;
+                                const boxOuterWidth = innerOpeningW - 25; // 25mm ray boşluğu
+                                const boxInnerWidth = boxOuterWidth - (2 * thick);
+                                
+                                // Çekmece Yanları
+                                addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Çekmece Yanı`, h: boxDepth, w: boxHeight, q: qty * 2, rot: true, b: [false, true, false, true] });
+                                
+                                // Çekmece Ön ve Arka
+                                addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Çekmece Ön/Arka`, h: boxInnerWidth, w: boxHeight, q: qty * 2, rot: true, b: [false, true, false, true] });
+                                
+                                // Çekmece Dibi (Alttan vidalama olarak kasanın dış ebatlarında)
+                                addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Çekmece Dibi`, h: boxDepth, w: boxOuterWidth, q: qty, rot: true, b: [false, false, false, false] });
+                            }
                         }
                     }
                 }
