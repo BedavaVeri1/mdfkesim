@@ -187,6 +187,26 @@ function update3DModel() {
             // Standart 20mm içeride görünüm
             const plinthZ = (d / 2) - 20 - (thick / 2);
             cabinetGroup.add(createPanel(innerW, plinthH, thick, 0, plinthY, plinthZ));
+
+            // 7mm Takoz Ayak Görselleri
+            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+            const legW = thick; const legD = 40; const legH = 7;
+            const legY = legH / 2;
+            const legMarginX = (w / 2) - (thick / 2); // Yan dikmelerin tam altı
+            const legMarginZ = (d / 2) - 40; // Ön/Arka payı
+
+            const positions = [
+                [-legMarginX, legY, -legMarginZ], // Sol Arka
+                [-legMarginX, legY, legMarginZ - 20],  // Sol Ön
+                [legMarginX, legY, -legMarginZ],  // Sağ Arka
+                [legMarginX, legY, legMarginZ - 20]    // Sağ Ön
+            ];
+
+            positions.forEach(pos => {
+                const legMesh = new THREE.Mesh(new THREE.BoxGeometry(legW, legH, legD), legMaterial);
+                legMesh.position.set(...pos);
+                cabinetGroup.add(legMesh);
+            });
         }
     }
 
