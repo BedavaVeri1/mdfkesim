@@ -256,12 +256,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    margin-bottom: 10px;
 }
 
 .input-group-col label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--primary);
 }
 
 .input-group-col input, .input-group-col select {
