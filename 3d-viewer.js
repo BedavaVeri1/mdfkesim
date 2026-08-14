@@ -121,14 +121,18 @@ function update3DModel() {
     const baseH = parseFloat(document.getElementById('mod-base-h')?.value) || 0;
     
     const sections = Array.from(document.querySelectorAll('.section-card')).map(card => {
+        const rawCols = parseInt(card.querySelector('.sec-cols-count').value);
         return {
             h: parseFloat(card.querySelector('.sec-h').value) || 0,
-            colsCount: parseInt(card.querySelector('.sec-cols-count').value) || 1,
+            colsCount: isNaN(rawCols) || rawCols < 1 ? 1 : rawCols,
             columns: Array.from(card.querySelectorAll('.column-card')).map(col => {
+                const rawShelf = parseInt(col.querySelector('.col-shelf-qty').value);
+                const rawDoor = parseInt(col.querySelector('.col-door-qty').value);
+                const rawStack = parseInt(col.querySelector('.col-stack-qty').value);
                 return {
-                    shelfQty: parseInt(col.querySelector('.col-shelf-qty').value) || 0,
-                    doorQty: parseInt(col.querySelector('.col-door-qty').value) || 1,
-                    stackQty: parseInt(col.querySelector('.col-stack-qty').value) || 1,
+                    shelfQty: isNaN(rawShelf) ? 0 : rawShelf,
+                    doorQty: isNaN(rawDoor) ? 0 : rawDoor,
+                    stackQty: isNaN(rawStack) ? 0 : rawStack,
                     gap: parseFloat(col.querySelector('.col-gap').value) || 20,
                     customW: col.querySelector('.col-custom-w').value,
                     customDrawers: col.querySelector('.col-custom-drawers').value,
