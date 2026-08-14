@@ -411,7 +411,7 @@ function update3DModel() {
                         const dCenterX = doorCurrentX + (doorW / 2);
                         const dCenterY = doorCurrentY + (doorH / 2);
                         
-                        cabinetGroup.add(createTransparentDoor(doorW, doorH, doorThick, dCenterX, dCenterY, doorZ));
+                        cabinetGroup.add(createPanel(doorW, doorH, doorThick, dCenterX, dCenterY, doorZ, true));
                         
                         doorCurrentX += doorW + 4;
                     }
