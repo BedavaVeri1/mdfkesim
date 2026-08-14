@@ -8,12 +8,9 @@ const MATERIAL_PANEL = new THREE.MeshStandardMaterial({
 });
 
 const MATERIAL_DOOR = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    opacity: 0.4,
-    transparent: true, // Yarı şeffaf cam gibi
-    roughness: 0.2,
-    metalness: 0.1,
-    side: THREE.DoubleSide
+    color: 0xe6cdab, // Raflardan hafifçe farklı ahşap tonu
+    roughness: 0.9,
+    metalness: 0.05
 });
 
 function init3DViewer() {
@@ -27,7 +24,7 @@ function init3DViewer() {
 
     // Sahne
     scene = new THREE.Scene();
-    scene.background = null;
+    scene.background = new THREE.Color(0xf4f4f5); // Açık gri stüdyo arka planı
 
     // Kamera
     camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 10000);
@@ -134,7 +131,7 @@ function createPanel(w, h, d, x, y, z, isDoor = false) {
     
     // Kenar çizgileri (Bant yerleri veya hatları belli etmek için)
     const edges = new THREE.EdgesGeometry(geometry);
-    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: isDoor ? 0xcccccc : 0x8b4513 }));
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 })); // Koyu belirgin hatlar
     mesh.add(line);
     
     return mesh;
@@ -487,8 +484,37 @@ function update3DModel() {
                         const dCenterX = doorCurrentX + (doorW / 2);
                         const dCenterY = doorCurrentY + (doorH / 2);
                         
-                        // Klapayı Çiz (Şeffaf)
+                        // Klapayı Çiz
                         cabinetGroup.add(createPanel(doorW, doorH, doorThick, dCenterX, dCenterY, doorZ, true));
+                        
+                        // Kulp Çizimi
+                        const handleMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.8 });
+                        const handleD = 20; const handleW = 120; const handleH = 10;
+                        let handleX = dCenterX;
+                        let handleY = dCenterY;
+                        let handleZ = doorZ + (doorThick / 2) + (handleD / 2);
+                        
+                        if (isDrawer) {
+                            handleY = dCenterY + (doorH * 0.1); 
+                            const handleGeo = new THREE.BoxGeometry(handleW, handleH, handleD);
+                            const handleMesh = new THREE.Mesh(handleGeo, handleMaterial);
+                            handleMesh.position.set(handleX, handleY, handleZ);
+                            cabinetGroup.add(handleMesh);
+                        } else {
+                            if (col.doorQty === 1) {
+                                handleX = dCenterX + (doorW / 2) - 40; 
+                            } else {
+                                if (dIdx < col.doorQty / 2) {
+                                    handleX = dCenterX + (doorW / 2) - 40; 
+                                } else {
+                                    handleX = dCenterX - (doorW / 2) + 40; 
+                                }
+                            }
+                            const handleGeo = new THREE.BoxGeometry(handleH, handleW, handleD);
+                            const handleMesh = new THREE.Mesh(handleGeo, handleMaterial);
+                            handleMesh.position.set(handleX, handleY, handleZ);
+                            cabinetGroup.add(handleMesh);
+                        }
                         
                         // Eğer çekmece ise İç Kasayı Çiz
                         if (isDrawer) {
