@@ -133,12 +133,12 @@ function update3DModel() {
                     shelfQty: isNaN(rawShelf) ? 0 : rawShelf,
                     doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                     stackQty: isNaN(rawStack) ? 0 : rawStack,
-                    gap: parseFloat(col.querySelector('.col-gap').value) || 15,
-                    customW: col.querySelector('.col-custom-w').value,
-                    customDrawers: col.querySelector('.col-custom-drawers').value,
-                    customShelves: col.querySelector('.col-custom-shelves').value,
-                    doorShelfDist: col.querySelector('.col-door-shelf-dist').value,
-                    doorWDist: col.querySelector('.col-door-w-dist').value
+                    gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
+                    customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
+                    customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
+                    customShelves: col.querySelector('.col-custom-shelves') ? col.querySelector('.col-custom-shelves').value : "",
+                    doorShelfDist: col.querySelector('.col-door-shelf-dist') ? col.querySelector('.col-door-shelf-dist').value : "",
+                    doorWDist: col.querySelector('.col-door-w-dist') ? col.querySelector('.col-door-w-dist').value : ""
                 };
             })
         };
