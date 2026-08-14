@@ -133,10 +133,12 @@ function update3DModel() {
                     shelfQty: isNaN(rawShelf) ? 0 : rawShelf,
                     doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                     stackQty: isNaN(rawStack) ? 0 : rawStack,
-                    gap: parseFloat(col.querySelector('.col-gap').value) || 20,
+                    gap: parseFloat(col.querySelector('.col-gap').value) || 15,
                     customW: col.querySelector('.col-custom-w').value,
                     customDrawers: col.querySelector('.col-custom-drawers').value,
-                    customShelves: col.querySelector('.col-custom-shelves').value
+                    customShelves: col.querySelector('.col-custom-shelves').value,
+                    doorShelfDist: col.querySelector('.col-door-shelf-dist').value,
+                    doorWDist: col.querySelector('.col-door-w-dist').value
                 };
             })
         };
@@ -255,61 +257,99 @@ function update3DModel() {
                 colW = parseFloat(col.customW);
             }
             
-            // 1. Kapakların Sınır (Çarpışma) Noktalarını Hesapla
-            let doorBoundaries = [];
-            let customDrawers = [];
-            if (col.customDrawers && col.customDrawers.trim() !== "") {
-                customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+            // 1. RAFLARIN MERKEZ KOORDİNATLARINI HESAPLA
+            let customShelves = [];
+            if (col.customShelves.trim() !== "") {
+                customShelves = col.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
             }
+            
+            const totalShelfThick = col.shelfQty * thick;
+            const netEmptySpace = netH - totalShelfThick;
+            const defaultShelfGap = netEmptySpace / (col.shelfQty + 1);
+            
+            let localShelfCurrentY = 0;
+            let shelfCenters = [];
+            
+            for (let i = 0; i < col.shelfQty; i++) {
+                let thisGap = customShelves[i] ? customShelves[i] : defaultShelfGap;
+                localShelfCurrentY += thisGap;
+                shelfCenters.push(localShelfCurrentY + (thick / 2));
+                localShelfCurrentY += thick;
+            }
+
+            // 2. KAPAK SINIR (ÇARPIŞMA) NOKTALARINI VE YÜKSEKLİKLERİNİ HESAPLA
+            let doorBoundaries = [];
+            let doorHeights = [];
             
             let doorTotalH = sectionDoorTotalH;
             const innerGapsH = (col.stackQty - 1) * 4;
             const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
             const defaultDoorH = usableH / col.stackQty;
 
-            if (col.doorQty > 0 && col.stackQty > 1) {
+            if (col.doorQty > 0 && col.stackQty > 0) {
                 let doorStartLocalY = 0;
                 if (index > 0) {
                     doorStartLocalY = prevSecHasDoors ? (-thick / 2) : -thick;
                 } else {
-                    doorStartLocalY = -thick;
+                    doorStartLocalY = -thick; 
                 }
                 doorStartLocalY += bottomGap;
                 
+                let customDrawers = [];
+                if (col.customDrawers && col.customDrawers.trim() !== "") {
+                    customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+                }
+                
+                let doorShelfDist = [];
+                if (col.doorShelfDist && col.doorShelfDist.trim() !== "") {
+                    doorShelfDist = col.doorShelfDist.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+                }
+                
                 let currentY = doorStartLocalY;
-                for (let stack = 0; stack < col.stackQty - 1; stack++) {
-                    let doorH = customDrawers[stack] ? customDrawers[stack] : defaultDoorH;
+                let accumulatedSpaces = 0;
+                
+                for (let stack = 0; stack < col.stackQty; stack++) {
+                    let doorH = defaultDoorH;
+                    
+                    if (customDrawers[stack]) {
+                        doorH = customDrawers[stack];
+                    } else if (doorShelfDist.length === col.stackQty && col.shelfQty > 0) {
+                        let spaces = doorShelfDist[stack];
+                        accumulatedSpaces += spaces;
+                        
+                        if (stack < col.stackQty - 1) {
+                            let targetShelfIndex = accumulatedSpaces - 1;
+                            if (targetShelfIndex >= 0 && targetShelfIndex < shelfCenters.length) {
+                                let targetBoundary = shelfCenters[targetShelfIndex];
+                                doorH = targetBoundary - currentY - 2; 
+                            }
+                        } else {
+                            doorH = doorStartLocalY + doorTotalH - topGap - currentY;
+                        }
+                    }
+                    
+                    doorHeights.push(doorH);
                     currentY += doorH;
-                    doorBoundaries.push(currentY + 2); 
-                    currentY += 4;
+                    if (stack < col.stackQty - 1) {
+                        doorBoundaries.push(currentY + 2); 
+                        currentY += 4;
+                    }
                 }
             }
             
-            // --- RAFLAR ---
+            // 3. RAFLARI ÇİZ VE KAPAK BASIYORSA TAM BOY YAP
             if (col.shelfQty > 0) {
-                let customHeights = [];
-                if (col.customShelves.trim() !== "") {
-                    customHeights = col.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-                }
-                
                 let shelfCurrentY = currentInnerY;
-                let localShelfCurrentY = 0; 
-                const totalShelfThick = col.shelfQty * thick;
-                const netEmptySpace = netH - totalShelfThick;
-                const defaultGap = netEmptySpace / (col.shelfQty + 1);
-                
                 const shelfCenterX = currentColX + (colW / 2);
+                let localY = 0;
                 
                 for (let i = 0; i < col.shelfQty; i++) {
-                    let thisGap = defaultGap;
-                    if (customHeights[i]) {
-                        thisGap = customHeights[i];
-                    }
+                    let thisGap = customShelves[i] ? customShelves[i] : defaultShelfGap;
                     shelfCurrentY += thisGap;
-                    localShelfCurrentY += thisGap;
+                    localY += thisGap;
                     
                     const yPos = shelfCurrentY + (thick / 2);
-                    const localCenterY = localShelfCurrentY + (thick / 2);
+                    const localCenterY = localY + (thick / 2);
                     
                     let isDoorBoundary = false;
                     for (let b of doorBoundaries) {
@@ -326,19 +366,17 @@ function update3DModel() {
                     cabinetGroup.add(createPanel(colW, thick, shelfD, shelfCenterX, yPos, shelfZ));
                     
                     shelfCurrentY += thick; 
-                    localShelfCurrentY += thick;
-
+                    localY += thick;
                 }
             }
 
-            // --- KAPAKLAR / ÇEKMECELER ---
+            // 4. KAPAKLARI ÇİZ
             const doorTotalW = (w * (colW / availableW)); 
             
             if (col.doorQty > 0 && col.stackQty > 0) {
                 const doorThick = 18; 
                 const doorZ = (d / 2) + (doorThick / 2); 
                 
-                // Yatay Kapak Hesaplaması
                 const isLeftCol = (cIdx === 0);
                 const isRightCol = (cIdx === sec.colsCount - 1);
                 const leftGap = isLeftCol ? 0 : 2;
@@ -346,35 +384,38 @@ function update3DModel() {
                 
                 const innerGapsW = (col.doorQty - 1) * 4;
                 const usableW = doorTotalW - leftGap - rightGap - innerGapsW;
-                const doorW = usableW / col.doorQty;
                 
-                // Dikey Çekmece Hesaplaması
-                const innerGapsH = (col.stackQty - 1) * 4;
-                const usableH = sectionDoorTotalH - bottomGap - topGap - innerGapsH;
-                const defaultDoorH = usableH / col.stackQty;
+                let doorWDist = [];
+                if (col.doorWDist && col.doorWDist.trim() !== "") {
+                    doorWDist = col.doorWDist.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n > 0);
+                }
                 
-                let customDrawers = [];
-                if (col.customDrawers && col.customDrawers.trim() !== "") {
-                    customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+                let doorWidths = [];
+                if (doorWDist.length === col.doorQty) {
+                    const totalDist = doorWDist.reduce((a, b) => a + b, 0);
+                    doorWidths = doorWDist.map(dist => usableW * (dist / totalDist));
+                } else {
+                    const defaultDoorW = usableW / col.doorQty;
+                    for(let i=0; i<col.doorQty; i++) doorWidths.push(defaultDoorW);
                 }
 
                 let doorCurrentY = sectionDoorAreaStart + bottomGap;
 
                 for (let stack = 0; stack < col.stackQty; stack++) {
-                    let doorH = defaultDoorH;
-                    if (customDrawers[stack]) {
-                        doorH = customDrawers[stack];
+                    let doorH = doorHeights[stack];
+                    
+                    let doorCurrentX = currentOuterColX + leftGap;
+                    for (let dIdx = 0; dIdx < col.doorQty; dIdx++) {
+                        let doorW = doorWidths[dIdx];
+                        
+                        const dCenterX = doorCurrentX + (doorW / 2);
+                        const dCenterY = doorCurrentY + (doorH / 2);
+                        
+                        cabinetGroup.add(createTransparentDoor(doorW, doorH, doorThick, dCenterX, dCenterY, doorZ));
+                        
+                        doorCurrentX += doorW + 4;
                     }
-                    
-                    const doorCenterY = doorCurrentY + (doorH / 2);
-                    let doorCurrentX = currentOuterColX + leftGap + (doorW / 2);
-                    
-                    for (let j = 0; j < col.doorQty; j++) {
-                        cabinetGroup.add(createPanel(doorW, doorH, doorThick, doorCurrentX, doorCenterY, doorZ, true));
-                        doorCurrentX += doorW + 4; // İç derz (yan yana)
-                    }
-                    
-                    doorCurrentY += doorH + 4; // İç derz (üst üste)
+                    doorCurrentY += doorH + 4;
                 }
             }
 
