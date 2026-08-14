@@ -34,7 +34,7 @@ function init3DViewer() {
     camera.position.set(1000, 1000, 1500);
 
     // Renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
@@ -76,6 +76,40 @@ function init3DViewer() {
 
     update3DModel();
     animate();
+    
+    // Fotoğraf İndirme Butonu
+    const btnImg = document.getElementById('btn-download-img');
+    if (btnImg) {
+        btnImg.addEventListener('click', () => {
+            // Animasyon render'ını beklemeden zorla çizdirip fotosunu çekiyoruz
+            renderer.render(scene, camera);
+            const link = document.createElement('a');
+            link.download = 'MDF_Tasarim.png';
+            link.href = renderer.domElement.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    // 3D Model (GLB) İndirme Butonu
+    const btn3D = document.getElementById('btn-download-3d');
+    if (btn3D) {
+        btn3D.addEventListener('click', () => {
+            if (typeof THREE.GLTFExporter === 'undefined') {
+                alert('GLTFExporter yüklenemedi. Lütfen internet bağlantınızı kontrol edin.');
+                return;
+            }
+            const exporter = new THREE.GLTFExporter();
+            exporter.parse(cabinetGroup, function (gltf) {
+                // Sadece modeli aktar
+                const output = JSON.stringify(gltf, null, 2);
+                const blob = new Blob([output], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'MDF_Model.gltf';
+                link.click();
+            }, { binary: false });
+        });
+    }
 }
 
 function onWindowResize() {

@@ -20,6 +20,7 @@
     <!-- Three.js for 3D Visualizer -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
 </head>
 
 <body>
@@ -224,6 +225,10 @@
                 <div class="modal-3d-side">
                     <div id="module-3d-container"></div>
                     <div class="viewer-hint"><i class="fas fa-mouse"></i> Döndürmek için sürükle, tekerlekle yaklaş. Kapaklar cam gibi yarı saydamdır.</div>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                        <button id="btn-download-img" class="btn-primary" style="margin:0; font-size: 0.85rem;"><i class="fas fa-camera"></i> Fotoğraf İndir (Müşteriye At)</button>
+                        <button id="btn-download-3d" class="btn-secondary" style="margin:0; font-size: 0.85rem; border: 1px solid var(--border-light);"><i class="fas fa-cube"></i> 3D Dosyası İndir</button>
+                    </div>
                 </div>
             </div>
         </div>
