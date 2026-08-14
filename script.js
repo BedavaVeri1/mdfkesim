@@ -412,10 +412,31 @@ document.addEventListener('DOMContentLoaded', () => {
             this.placedBlocks = [];
         }
 
-        fit(blocks) {
-            // Önce alanı en büyük, sonra uzun kenarı en büyük olanı dene
+        fit(blocks, strategy = 'max_side') {
             const remaining = blocks.filter(b => !b.fit);
-            remaining.sort((a, b) => Math.max(b.cw, b.ch) - Math.max(a.cw, a.ch));
+            
+            remaining.sort((a, b) => {
+                const maxA = Math.max(a.cw, a.ch);
+                const maxB = Math.max(b.cw, b.ch);
+                const areaA = a.cw * a.ch;
+                const areaB = b.cw * b.ch;
+                const minA = Math.min(a.cw, a.ch);
+                const minB = Math.min(b.cw, b.ch);
+                
+                if (strategy === 'area') {
+                    return areaB - areaA || maxB - maxA;
+                } else if (strategy === 'max_side') {
+                    return maxB - maxA || areaB - areaA;
+                } else if (strategy === 'min_side') {
+                    return minB - minA || maxB - maxA;
+                } else if (strategy === 'perimeter') {
+                    return (b.cw + b.ch) - (a.cw + a.ch);
+                } else if (strategy === 'mixed') {
+                    // Yarı rastgele karma yaklaşım
+                    return (areaB - areaA) * 0.7 + (Math.random() * 1000 - 500);
+                }
+                return maxB - maxA; // Default
+            });
 
             remaining.forEach(block => {
                 const node = this.findPosition(block);
@@ -556,40 +577,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (blocks.length === 0) { alert('Hesaplanacak geçerli bir parça bulunamadı. Lütfen En ve Boy ölçülerini girdiğinizden emin olun!'); return; }
 
-        // 3. Optimizasyon Döngüsü
-        let sheets = [];
-        let safety = 0;
+        // Stratejiler
+        const strategies = ['max_side', 'area', 'min_side', 'perimeter', 'mixed'];
+        let results = [];
 
-        while (blocks.some(b => !b.fit) && safety < 500) {
-            const packer = new GuillotinePacker(stockW, stockH);
-            packer.fit(blocks);
+        strategies.forEach(strategy => {
+            // Blokları kopyala (Her strateji temiz bloklarla başlasın)
+            let currentBlocks = blocks.map(b => ({...b, fit: null}));
+            let sheets = [];
+            let safety = 0;
 
-            if (packer.placedBlocks.length > 0) {
-                sheets.push(packer);
-            } else {
-                // Kalanlar sığmıyor demektir
-                break;
+            while (currentBlocks.some(b => !b.fit) && safety < 500) {
+                const packer = new GuillotinePacker(stockW, stockH);
+                packer.fit(currentBlocks, strategy);
+
+                if (packer.placedBlocks.length > 0) {
+                    sheets.push(packer);
+                } else {
+                    break;
+                }
+                safety++;
             }
-            safety++;
-        }
+            
+            // Başarı hesaplama (Plaka Sayısı düşük, fire oranı düşük olan kazanır)
+            let usedArea = 0;
+            sheets.forEach(s => {
+                s.placedBlocks.forEach(b => { usedArea += b.cw * b.ch; });
+            });
+            let totalArea = sheets.length * stockW * stockH;
+            let efficiency = totalArea > 0 ? (usedArea / totalArea) : 0;
+            
+            results.push({ strategy, sheets, blocks: currentBlocks, efficiency, sheetCount: sheets.length });
+        });
 
-        // 4. Sonuçları Kaydet
-        projectState.sheets = sheets;
-        projectState.blocks = blocks;
+        // En iyiden en kötüye sırala
+        results.sort((a, b) => {
+            if (a.sheetCount !== b.sheetCount) return a.sheetCount - b.sheetCount;
+            return b.efficiency - a.efficiency;
+        });
+
+        // İlk 3 seçeneği al
+        const topResults = results.slice(0, 3);
+        
+        // Butonları oluştur
+        const optionsDiv = document.getElementById('layout-options');
+        optionsDiv.style.display = 'flex';
+        // Önce temizle, ilk label kalsın
+        optionsDiv.innerHTML = '<strong style="display:flex; align-items:center; margin-right:10px; color:var(--dark);">MDF Kullanımı:</strong>';
+        
+        topResults.forEach((res, idx) => {
+            const btn = document.createElement('button');
+            btn.className = idx === 0 ? 'btn-primary' : 'btn-secondary';
+            btn.style.margin = '0';
+            btn.style.fontSize = '0.9rem';
+            btn.innerHTML = idx === 0 ? `Seçenek 1 (En İyi)` : `Seçenek ${idx + 1}`;
+            btn.title = `Plaka: ${res.sheetCount} | Verim: %${(res.efficiency * 100).toFixed(1)}`;
+            
+            btn.addEventListener('click', () => {
+                // Diğer butonların rengini resetle
+                Array.from(optionsDiv.querySelectorAll('button')).forEach(b => {
+                    b.className = 'btn-secondary';
+                });
+                btn.className = 'btn-primary';
+                
+                // Seçilen sonucu yükle
+                applyResult(res, stockW, stockH, sheetPrice, cutPrice, bandPrice, kerf, bandThick);
+            });
+            
+            optionsDiv.appendChild(btn);
+        });
+
+        // Varsayılan olarak en iyiyi uygula
+        applyResult(topResults[0], stockW, stockH, sheetPrice, cutPrice, bandPrice, kerf, bandThick);
+    }
+    
+    function applyResult(result, stockW, stockH, sheetPrice, cutPrice, bandPrice, kerf, bandThick) {
+        projectState.sheets = result.sheets;
+        projectState.blocks = result.blocks;
         projectState.settings = { stockW, stockH, kerf, bandThick };
 
-        // 5. İstatistikler & Maliyet
-        calculateStats(sheets, stockW, stockH, sheetPrice, cutPrice, bandPrice);
+        calculateStats(result.sheets, stockW, stockH, sheetPrice, cutPrice, bandPrice);
+        listOffcuts(result.sheets);
 
-        // 6. Artan Parçalar
-        listOffcuts(sheets);
-
-        // 7. Butonları Aç
         dom.pdfBtn.style.display = 'inline-block';
         dom.labelBtn.style.display = 'inline-block';
 
-        // 8. Çizim
-        drawResults(stockW, stockH, sheets);
+        drawResults(stockW, stockH, result.sheets);
     }
 
     function calculateStats(sheets, sw, sh, sPrice, cPrice, bPrice) {
