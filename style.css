@@ -104,14 +104,14 @@ body {
 }
 
 .owner-text {
+    font-family: 'Inter', sans-serif; /* Plaka & Maliyet ile aynı font */
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.5px;
     margin-left: 2px;
-    align-self: flex-end;
-    margin-bottom: 5px;
-    color: var(--primary); /* Düz mavi/lacivert renk */
-    opacity: 0.9; 
+    color: var(--accent); /* mdfkesiM sonundaki turkuaz/açık mavi renk */
+    opacity: 0.95; 
+    transform: translateY(4px); /* Optik olarak alt çizgiye hizalama */
 }
 
 .badge {
