@@ -1037,14 +1037,22 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.rect(x + 2, y + 2, w - 4, h - 4); // Marginli
 
             // İçerik
-            doc.setFontSize(14);
+            doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
-            doc.text(part.name, x + 10, y + 15);
+            
+            // Uzun isimleri alt satıra kaydırarak sığdırma
+            let nameToPrint = part.name || "İsimsiz Parça";
+            let splitName = doc.splitTextToSize(nameToPrint, w - 20);
+            doc.text(splitName, x + 10, y + 15);
+
+            // Başlığın kaç satır tuttuğuna göre ölçünün Y koordinatını ayarla
+            let yOffset = splitName.length > 1 ? (splitName.length * 6) + 10 : 30;
 
             doc.setFontSize(22);
-            const cutBoy = part.fit.rotated ? part.finishW : part.finishH;
-            const cutEn = part.fit.rotated ? part.finishH : part.finishW;
-            doc.text(`${cutBoy} x ${cutEn}`, x + 10, y + 30);
+            // Rotasyon durumundan bağımsız olarak her zaman orijinal Boy (finishH) x En (finishW)
+            const cutBoy = part.finishH;
+            const cutEn = part.finishW;
+            doc.text(`${cutBoy} x ${cutEn}`, x + 10, y + yOffset);
 
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
