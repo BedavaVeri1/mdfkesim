@@ -117,10 +117,11 @@ body {
     display: flex;
     gap: 6px;
     margin-bottom: 16px; /* Kısaltıldı */
-    background: rgba(255, 255, 255, 0.5);
-    padding: 6px; /* Kısaltıldı */
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px; /* Kısaltıldı */
     border-radius: var(--radius-md);
-    border: 1px solid var(--border-light);
+    border: 2px solid rgba(79, 70, 229, 0.4); /* Belirgin çerçeve (kontür) */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Derinlik */
 }
 
 .toolbar button,
