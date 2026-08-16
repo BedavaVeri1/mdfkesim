@@ -7,8 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('login-btn');
     const loginError = document.getElementById('login-error');
 
-    // Daha önce giriş yapılmış mı kontrol et
-    if (localStorage.getItem('mdfkesim_auth') === 'true') {
+    // Eski kalıcı hafızayı (localStorage) temizle ki eski şifrelerle girenlerin de oturumu kapansın
+    localStorage.removeItem('mdfkesim_auth');
+
+    // Daha önce bu oturumda giriş yapılmış mı kontrol et (sessionStorage)
+    if (sessionStorage.getItem('mdfkesim_auth') === 'true') {
         loginOverlay.classList.add('hidden');
     }
 
@@ -29,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (data.success) {
-                localStorage.setItem('mdfkesim_auth', 'true');
+                sessionStorage.setItem('mdfkesim_auth', 'true');
                 loginOverlay.classList.add('hidden');
             } else {
                 showLoginError(data.error || 'Hatalı şifre!');
@@ -42,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                 // SADECE GELİŞTİRME AŞAMASI İÇİN YEREL KONTROL (Vercel harici)
                 if (password === '123') {
-                    localStorage.setItem('mdfkesim_auth', 'true');
+                    sessionStorage.setItem('mdfkesim_auth', 'true');
                     loginOverlay.classList.add('hidden');
                     return;
                 }
