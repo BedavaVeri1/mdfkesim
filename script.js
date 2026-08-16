@@ -150,7 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.saveBtn.addEventListener('click', saveProject);
         dom.loadBtn.addEventListener('click', loadProject);
         dom.clearBtn.addEventListener('click', () => {
-            if (confirm('Tüm liste silinecek?')) { dom.partsList.innerHTML = ''; addPartRow(); }
+            if (typeof window.showCustomConfirm === 'function') {
+                window.showCustomConfirm('Tüm listeyi silmek istediğinizden emin misiniz?', () => {
+                    dom.partsList.innerHTML = '';
+                    addPartRow();
+                });
+            } else {
+                if (confirm('Tüm liste silinecek?')) { dom.partsList.innerHTML = ''; addPartRow(); }
+            }
         });
         dom.excelInput.addEventListener('change', handleExcelUpload);
 
@@ -274,7 +281,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             }
-            showToast(`${rows.length - 1} parça başarıyla yüklendi!`, 'success');
+            if (window.showCustomAlert) {
+                window.showCustomAlert(`${rows.length - 1} parça başarıyla yüklendi!`, 'success');
+            } else {
+                showToast(`${rows.length - 1} parça başarıyla yüklendi!`, 'success');
+            }
         };
         reader.readAsArrayBuffer(file);
         // Reset input
@@ -1268,7 +1279,8 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
         modal.style.textAlign = 'center';
         modal.style.minWidth = '300px';
-        
+        modal.style.animation = 'fadeInScale 0.3s ease-out'; // Sakin animasyon
+
         let text = document.createElement('p');
         text.innerHTML = msg;
         text.style.marginBottom = '20px';
@@ -1299,6 +1311,54 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
     }
+    
+    window.showCustomAlert = function(msg, type = 'info') {
+        let overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0'; overlay.style.left = '0'; overlay.style.width = '100%'; overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        overlay.style.zIndex = '99999';
+        overlay.style.display = 'flex'; overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center';
+        
+        let modal = document.createElement('div');
+        modal.style.backgroundColor = '#fff';
+        modal.style.padding = '25px';
+        modal.style.borderRadius = '8px';
+        modal.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+        modal.style.textAlign = 'center';
+        modal.style.minWidth = '300px';
+        modal.style.animation = 'fadeInScale 0.3s ease-out'; // Sakin animasyon
+
+        let icon = document.createElement('div');
+        icon.style.fontSize = '40px';
+        icon.style.marginBottom = '15px';
+        if (type === 'success') {
+            icon.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+        } else if (type === 'error') {
+            icon.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>';
+        } else {
+            icon.innerHTML = '<i class="fas fa-info-circle" style="color: #3b82f6;"></i>';
+        }
+        
+        let text = document.createElement('p');
+        text.innerHTML = msg;
+        text.style.marginBottom = '20px';
+        text.style.fontSize = '1.1rem';
+        text.style.color = '#333';
+        
+        let btnOk = document.createElement('button');
+        btnOk.className = 'btn-primary';
+        btnOk.style.width = '100%';
+        btnOk.innerHTML = 'Tamam';
+        
+        btnOk.onclick = () => overlay.remove();
+        
+        modal.appendChild(icon);
+        modal.appendChild(text);
+        modal.appendChild(btnOk);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+    };
     
     // --- CUSTOM PROMPT MODAL ---
     window.showCustomPrompt = function(msg, defaultVal) {
@@ -1941,4 +2001,8 @@ function downloadExcelTemplate() {
 
     XLSX.utils.book_append_sheet(wb, ws, "Kesim Listesi");
     XLSX.writeFile(wb, "MdfKesim_Sablon.xlsx");
+    
+    if (window.showCustomAlert) {
+        window.showCustomAlert('Örnek Excel şablonu indirildi!', 'success');
+    }
 }
