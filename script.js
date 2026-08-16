@@ -907,9 +907,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (i > 0) doc.addPage();
 
             // Başlık
-            doc.setFont('helvetica', 'bold');
+            doc.setFont('Outfit', 'bold');
             doc.setFontSize(16);
-            doc.text(`Kesim Plani - Plaka ${i + 1}`, 10, 10);
+            doc.text(`Kesim Planı - Plaka ${i + 1}`, 10, 10);
 
             // Geçici Canvas (Yüksek Kalite)
             const tCan = document.createElement('canvas');
@@ -1056,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // İçerik
             doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
+            doc.setFont('Outfit', 'bold');
             
             // Uzun isimleri alt satıra kaydırarak sığdırma (105mm için)
             let nameToPrint = part.name || "İsimsiz Parça";
@@ -1077,11 +1077,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Rotasyon durumundan bağımsız olarak her zaman orijinal Boy (finishH) x En (finishW)
             const cutBoy = part.finishH;
             const cutEn = part.finishW;
-            doc.text(`${cutBoy} x ${cutEn}`, x + 10, y + yOffset);
+            doc.text(`${cutBoy} x ${cutEn}`, x + 5, y + yOffset);
 
             doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Plaka: ${part.sheetId}`, x + 10, y + 45);
+            doc.setFont('Outfit', 'normal');
+            doc.text(`Plaka: ${part.sheetId}`, x + 5, y + yOffset + 10);
 
             // Bant Bilgisi
             let bands = [];
