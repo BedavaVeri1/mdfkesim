@@ -110,10 +110,8 @@ body {
     margin-left: 2px;
     align-self: flex-end;
     margin-bottom: 5px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    opacity: 0.85; 
+    color: var(--primary); /* Düz mavi/lacivert renk */
+    opacity: 0.9; 
 }
 
 .badge {
