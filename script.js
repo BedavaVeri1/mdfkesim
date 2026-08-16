@@ -895,14 +895,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return colorMap[key];
     }
 
+    // Türkçe karakterleri İngilizce eşdeğerlerine dönüştürme fonksiyonu (PDF sorunları için)
+    function sanitizeTurkish(text) {
+        if (!text) return "";
+        const map = {
+            'ş': 's', 'Ş': 'S',
+            'ğ': 'g', 'Ğ': 'G',
+            'ç': 'c', 'Ç': 'C',
+            'ı': 'i', 'İ': 'I',
+            'ö': 'o', 'Ö': 'O',
+            'ü': 'u', 'Ü': 'U'
+        };
+        return text.replace(/[şŞğĞçÇıİöÖüÜ]/g, match => map[match]);
+    }
+
     // --- PDF RAPOR ---
     function generatePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
         
-        // Fontları manuel olarak ekle
-        if (window.addOutfitFontToPDF) window.addOutfitFontToPDF(doc);
-
         const sheets = projectState.sheets;
         const sw = projectState.settings.stockW;
         const sh = projectState.settings.stockH;
@@ -911,9 +922,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (i > 0) doc.addPage();
 
             // Başlık
-            doc.setFont('Outfit', 'bold');
+            doc.setFont('helvetica', 'bold');
             doc.setFontSize(16);
-            doc.text(`Kesim Planı - Plaka ${i + 1}`, 10, 10);
+            doc.text(sanitizeTurkish(`Kesim Planı - Plaka ${i + 1}`), 10, 10);
 
             // Geçici Canvas (Yüksek Kalite)
             const tCan = document.createElement('canvas');
@@ -1031,9 +1042,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         // A4 Kağıda 2 sütun x 4 satır etiket (105mm x 74mm etiket) -> Toplam 8 Etiket
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-        
-        // Fontları manuel olarak ekle
-        if (window.addOutfitFontToPDF) window.addOutfitFontToPDF(doc);
 
         let col = 0;
         let row = 0;
@@ -1063,10 +1071,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // İçerik
             doc.setFontSize(11);
-            doc.setFont('Outfit', 'bold');
+            doc.setFont('helvetica', 'bold');
             
-            // Uzun isimleri alt satıra kaydırarak sığdırma (105mm için)
-            let nameToPrint = part.name || "İsimsiz Parça";
+            // Uzun isimleri alt satıra kaydırarak sığdırma (105mm için) ve Türkçe düzeltme
+            let rawName = part.name || "İsimsiz Parça";
+            let nameToPrint = sanitizeTurkish(rawName);
             let splitName = doc.splitTextToSize(nameToPrint, w - 10);
             
             // Eğer çok uzunsa (2 satırdan fazlaysa) etiketten taşmasın diye kırp
@@ -1087,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.text(`${cutBoy} x ${cutEn}`, x + 5, y + yOffset);
 
             doc.setFontSize(10);
-            doc.setFont('Outfit', 'normal');
+            doc.setFont('helvetica', 'normal');
             doc.text(`Plaka: ${part.sheetId}`, x + 5, y + yOffset + 10);
 
             // Bant Bilgisi
