@@ -12,18 +12,56 @@ document.addEventListener('DOMContentLoaded', () => {
         loginOverlay.classList.add('hidden');
     }
 
-    const checkPassword = () => {
-        if (loginPassword.value === CORRECT_PASSWORD) {
-            localStorage.setItem('mdfkesim_auth', 'true');
-            loginOverlay.classList.add('hidden');
-        } else {
-            loginError.style.display = 'block';
-            loginOverlay.querySelector('.login-box').classList.remove('shake');
-            void loginOverlay.querySelector('.login-box').offsetWidth; // Reflow for animation
-            loginOverlay.querySelector('.login-box').classList.add('shake');
-            loginPassword.value = '';
-            loginPassword.focus();
+    const checkPassword = async () => {
+        const password = loginPassword.value;
+        if (!password) return;
+
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kontrol ediliyor...';
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                localStorage.setItem('mdfkesim_auth', 'true');
+                loginOverlay.classList.add('hidden');
+            } else {
+                showLoginError(data.error || 'Hatalı şifre!');
+            }
+        } catch (error) {
+            console.error("Giriş hatası:", error);
+            // Eğer çevrimdışıysa (PWA) ve daha önce giriş yapılmışsa diye fallback eklenebilir, 
+            // ama burada zaten giriş yapılmamışsa API'ye soruyoruz.
+            // API'ye ulaşılamıyorsa muhtemelen lokalde (file://) çalıştırılıyordur.
+            if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                // SADECE GELİŞTİRME AŞAMASI İÇİN YEREL KONTROL (Vercel harici)
+                if (password === '123') {
+                    localStorage.setItem('mdfkesim_auth', 'true');
+                    loginOverlay.classList.add('hidden');
+                    return;
+                }
+            }
+            showLoginError('Bağlantı hatası! İnternetinizi kontrol edin.');
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Giriş Yap';
         }
+    };
+
+    const showLoginError = (msg) => {
+        loginError.textContent = msg;
+        loginError.style.display = 'block';
+        loginOverlay.querySelector('.login-box').classList.remove('shake');
+        void loginOverlay.querySelector('.login-box').offsetWidth; // Reflow
+        loginOverlay.querySelector('.login-box').classList.add('shake');
+        loginPassword.value = '';
+        loginPassword.focus();
     };
 
     loginBtn.addEventListener('click', checkPassword);
