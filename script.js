@@ -1025,12 +1025,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ETİKET YAZDIR (STICKER) ---
     function generateLabels() {
         const { jsPDF } = window.jspdf;
-        // A4 Kağıda 3 sütun x 4 satır etiket (70mm x 74mm etiket) -> Toplam 12 Etiket
+        // A4 Kağıda 2 sütun x 4 satır etiket (105mm x 74mm etiket) -> Toplam 8 Etiket
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
         let col = 0;
         let row = 0;
-        const w = 70;
+        const w = 105;
         const h = 74;
 
         // Düzleştirilmiş parça listesi
@@ -1042,7 +1042,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         flatParts.forEach((part, i) => {
-            if (i > 0 && i % 12 === 0) {
+            if (i > 0 && i % 8 === 0) {
                 doc.addPage();
                 col = 0; row = 0;
             }
@@ -1055,18 +1055,25 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.rect(x + 2, y + 2, w - 4, h - 4); // Marginli
 
             // İçerik
-            doc.setFontSize(12);
+            doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             
-            // Uzun isimleri alt satıra kaydırarak sığdırma (70mm için marjin daha dar)
+            // Uzun isimleri alt satıra kaydırarak sığdırma (105mm için)
             let nameToPrint = part.name || "İsimsiz Parça";
             let splitName = doc.splitTextToSize(nameToPrint, w - 10);
-            doc.text(splitName, x + 5, y + 12);
+            
+            // Eğer çok uzunsa (2 satırdan fazlaysa) etiketten taşmasın diye kırp
+            if (splitName.length > 2) {
+                splitName = splitName.slice(0, 2);
+                splitName[1] += "...";
+            }
+            
+            doc.text(splitName, x + 5, y + 15);
 
             // Başlığın kaç satır tuttuğuna göre ölçünün Y koordinatını ayarla
-            let yOffset = splitName.length > 1 ? (splitName.length * 5) + 12 : 22;
+            let yOffset = splitName.length > 1 ? (splitName.length * 5) + 15 : 25;
 
-            doc.setFontSize(18);
+            doc.setFontSize(22);
             // Rotasyon durumundan bağımsız olarak her zaman orijinal Boy (finishH) x En (finishW)
             const cutBoy = part.finishH;
             const cutEn = part.finishW;
@@ -1091,13 +1098,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // QR Kod Yeri (Simülasyon - Kutu)
-            doc.rect(x + w - 20, y + h - 20, 15, 15);
-            doc.setFontSize(5);
-            doc.text('QR', x + w - 15, y + h - 11);
+            doc.rect(x + w - 25, y + h - 25, 20, 20);
+            doc.setFontSize(6);
+            doc.text('QR', x + w - 18, y + h - 14);
 
             // Koordinat artır
             col++;
-            if (col > 2) { col = 0; row++; }
+            if (col > 1) { col = 0; row++; }
         });
 
         window.open(doc.output('bloburl'), '_blank');
