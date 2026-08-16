@@ -243,16 +243,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const project = {
             parts: parts,
             settings: {
+            settings: {
                 stockW: dom.inputs.stockW.value,
                 stockH: dom.inputs.stockH.value,
                 kerf: dom.inputs.kerf.value,
-                banding: dom.inputs.banding.value
+                banding: dom.inputs.banding.value,
+                sheetPrice: document.getElementById('sheetPrice') ? document.getElementById('sheetPrice').value : 1500,
+                cutPrice: document.getElementById('cutPrice') ? document.getElementById('cutPrice').value : 50,
+                bandPrice: document.getElementById('bandPrice') ? document.getElementById('bandPrice').value : 15
             },
             moduleWizard: {
                 w: document.getElementById('mod-w').value,
                 h: document.getElementById('mod-h').value,
                 d: document.getElementById('mod-d').value,
                 thick: document.getElementById('mod-thick').value,
+                baseType: document.getElementById('mod-base-type').value,
                 baseH: document.getElementById('mod-base-h').value,
                 sections: Array.from(document.querySelectorAll('.section-card')).map(card => {
                     const rawCols = parseInt(card.querySelector('.sec-cols-count').value);
@@ -263,10 +268,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             const rawShelf = parseInt(col.querySelector('.col-shelf-qty').value);
                             const rawDoor = parseInt(col.querySelector('.col-door-qty').value);
                             const rawStack = parseInt(col.querySelector('.col-stack-qty').value);
+                            const rawDrawer = parseInt(col.querySelector('.col-drawer-qty').value);
+                            const doorShelfDist = col.querySelector('.col-door-shelf-dist').value;
+                            const doorWDist = col.querySelector('.col-door-w-dist').value;
                             return {
                                 shelfQty: isNaN(rawShelf) ? 0 : rawShelf,
                                 doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                                 stackQty: isNaN(rawStack) ? 0 : rawStack,
+                                drawerQty: isNaN(rawDrawer) ? 0 : rawDrawer,
+                                doorShelfDist: doorShelfDist,
+                                doorWDist: doorWDist,
                                 gap: parseFloat(col.querySelector('.col-gap').value) || 20,
                                 customW: col.querySelector('.col-custom-w').value,
                                 customDrawers: col.querySelector('.col-custom-drawers').value,
@@ -345,6 +356,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     dom.inputs.kerf.value = project.settings.kerf || 3;
                     dom.inputs.banding.value = project.settings.banding || 1;
+                    
+                    if(document.getElementById('sheetPrice')) document.getElementById('sheetPrice').value = project.settings.sheetPrice || 1500;
+                    if(document.getElementById('cutPrice')) document.getElementById('cutPrice').value = project.settings.cutPrice || 50;
+                    if(document.getElementById('bandPrice')) document.getElementById('bandPrice').value = project.settings.bandPrice || 15;
 
                     // Parçaları Yükle
                     dom.partsList.innerHTML = '';
@@ -358,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('mod-h').value = project.moduleWizard.h || '';
                         document.getElementById('mod-d').value = project.moduleWizard.d || '';
                         document.getElementById('mod-thick').value = project.moduleWizard.thick || 18;
+                        if(project.moduleWizard.baseType) document.getElementById('mod-base-type').value = project.moduleWizard.baseType;
                         document.getElementById('mod-base-h').value = project.moduleWizard.baseH || 0;
                         
                         const container = document.getElementById('sections-container');
@@ -379,8 +395,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                         sec.columns.forEach((colData, cIdx) => {
                                             if (colCards[cIdx]) {
                                                 colCards[cIdx].querySelector('.col-shelf-qty').value = colData.shelfQty || 0;
-                                                colCards[cIdx].querySelector('.col-door-qty').value = colData.doorQty || 1;
-                                                colCards[cIdx].querySelector('.col-stack-qty').value = colData.stackQty || 1;
+                                                colCards[cIdx].querySelector('.col-door-qty').value = colData.doorQty || 0;
+                                                colCards[cIdx].querySelector('.col-stack-qty').value = colData.stackQty || 0;
+                                                if (colCards[cIdx].querySelector('.col-drawer-qty')) colCards[cIdx].querySelector('.col-drawer-qty').value = colData.drawerQty || 0;
+                                                if (colCards[cIdx].querySelector('.col-door-shelf-dist')) colCards[cIdx].querySelector('.col-door-shelf-dist').value = colData.doorShelfDist || '';
+                                                if (colCards[cIdx].querySelector('.col-door-w-dist')) colCards[cIdx].querySelector('.col-door-w-dist').value = colData.doorWDist || '';
                                                 colCards[cIdx].querySelector('.col-gap').value = colData.gap || 20;
                                                 colCards[cIdx].querySelector('.col-custom-w').value = colData.customW || '';
                                                 colCards[cIdx].querySelector('.col-custom-drawers').value = colData.customDrawers || '';
@@ -1007,12 +1026,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ETİKET YAZDIR (STICKER) ---
     function generateLabels() {
         const { jsPDF } = window.jspdf;
-        // A4 Kağıda 2 sütun x 4 satır etiket varsayalım (105mm x 74mm etiket)
+        // A4 Kağıda 3 sütun x 4 satır etiket (70mm x 74mm etiket) -> Toplam 12 Etiket
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
         let col = 0;
         let row = 0;
-        const w = 105;
+        const w = 70;
         const h = 74;
 
         // Düzleştirilmiş parça listesi
@@ -1024,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         flatParts.forEach((part, i) => {
-            if (i > 0 && i % 8 === 0) {
+            if (i > 0 && i % 12 === 0) {
                 doc.addPage();
                 col = 0; row = 0;
             }
@@ -1040,15 +1059,15 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             
-            // Uzun isimleri alt satıra kaydırarak sığdırma
+            // Uzun isimleri alt satıra kaydırarak sığdırma (70mm için marjin daha dar)
             let nameToPrint = part.name || "İsimsiz Parça";
-            let splitName = doc.splitTextToSize(nameToPrint, w - 20);
-            doc.text(splitName, x + 10, y + 15);
+            let splitName = doc.splitTextToSize(nameToPrint, w - 10);
+            doc.text(splitName, x + 5, y + 12);
 
             // Başlığın kaç satır tuttuğuna göre ölçünün Y koordinatını ayarla
-            let yOffset = splitName.length > 1 ? (splitName.length * 6) + 10 : 30;
+            let yOffset = splitName.length > 1 ? (splitName.length * 5) + 12 : 22;
 
-            doc.setFontSize(22);
+            doc.setFontSize(18);
             // Rotasyon durumundan bağımsız olarak her zaman orijinal Boy (finishH) x En (finishW)
             const cutBoy = part.finishH;
             const cutEn = part.finishW;
@@ -1067,18 +1086,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (bands.length > 0) {
                 doc.setTextColor(200, 0, 0);
-                doc.text(`BANT: ${bands.join(' - ')}`, x + 10, y + 55);
+                doc.setFontSize(8);
+                doc.text(`BANT: ${bands.join(' - ')}`, x + 5, y + yOffset + 18);
                 doc.setTextColor(0);
             }
 
             // QR Kod Yeri (Simülasyon - Kutu)
-            doc.rect(x + w - 30, y + h - 30, 20, 20);
-            doc.setFontSize(6);
-            doc.text('QR', x + w - 23, y + h - 18);
+            doc.rect(x + w - 20, y + h - 20, 15, 15);
+            doc.setFontSize(5);
+            doc.text('QR', x + w - 15, y + h - 11);
 
             // Koordinat artır
             col++;
-            if (col > 1) { col = 0; row++; }
+            if (col > 2) { col = 0; row++; }
         });
 
         window.open(doc.output('bloburl'), '_blank');
