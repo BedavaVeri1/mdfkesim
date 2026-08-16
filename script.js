@@ -60,11 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const clearAllPartsBtn = document.getElementById('clear-all-parts-btn');
         if (clearAllPartsBtn) {
             clearAllPartsBtn.addEventListener('click', () => {
-                if (confirm('Tüm parçaları silmek istediğinizden emin misiniz?')) {
+                showCustomConfirm('Tüm parçaları silmek istediğinizden emin misiniz?', () => {
                     dom.partsList.innerHTML = '';
                     saveToLocalStorage();
                     showToast('Tüm parçalar temizlendi.', 'info');
-                }
+                });
             });
         }
         dom.calculateBtn.addEventListener('click', runOptimization);
@@ -1089,6 +1089,54 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         }, 3000);
+    }
+    
+    // --- CUSTOM CONFIRM MODAL ---
+    window.showCustomConfirm = function(msg, onConfirm) {
+        let overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0'; overlay.style.left = '0'; overlay.style.width = '100%'; overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        overlay.style.zIndex = '99999';
+        overlay.style.display = 'flex'; overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center';
+        
+        let modal = document.createElement('div');
+        modal.style.backgroundColor = '#fff';
+        modal.style.padding = '25px';
+        modal.style.borderRadius = '8px';
+        modal.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+        modal.style.textAlign = 'center';
+        modal.style.minWidth = '300px';
+        
+        let text = document.createElement('p');
+        text.innerHTML = msg;
+        text.style.marginBottom = '20px';
+        text.style.fontSize = '1.1rem';
+        text.style.color = '#333';
+        
+        let btnContainer = document.createElement('div');
+        btnContainer.style.display = 'flex'; btnContainer.style.justifyContent = 'center'; btnContainer.style.gap = '15px';
+        
+        let btnCancel = document.createElement('button');
+        btnCancel.className = 'btn-secondary';
+        btnCancel.style.width = 'auto'; btnCancel.style.margin = '0';
+        btnCancel.innerHTML = 'İptal';
+        
+        let btnOk = document.createElement('button');
+        btnOk.className = 'btn-primary';
+        btnOk.style.width = 'auto'; btnOk.style.margin = '0'; btnOk.style.backgroundColor = '#d32f2f'; // Kırmızımsı
+        btnOk.innerHTML = 'Evet, Temizle';
+        
+        btnCancel.onclick = () => overlay.remove();
+        btnOk.onclick = () => { overlay.remove(); if (onConfirm) onConfirm(); };
+        
+        btnContainer.appendChild(btnCancel);
+        btnContainer.appendChild(btnOk);
+        
+        modal.appendChild(text);
+        modal.appendChild(btnContainer);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
     }
 
     // --- MODÜLER SİHİRBAZ: BÖLÜM (SECTION) MANTIĞI ---
