@@ -1121,6 +1121,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Ana form ölçüleri değiştiğinde de raf boşluklarını güncelle
+    window.toggleSectionAccordion = function(activeSectionId) {
+        const allBodies = document.querySelectorAll('.section-body');
+        const allIcons = document.querySelectorAll('.accordion-icon');
+        
+        allBodies.forEach(body => {
+            if (body.id === `section-body-${activeSectionId}`) {
+                // Tıklananı aç (veya zaten açıksa kapat)
+                const isCurrentlyOpen = body.style.display !== 'none';
+                body.style.display = isCurrentlyOpen ? 'none' : 'block';
+                
+                // İkonu döndür
+                const icon = body.parentElement.querySelector('.accordion-icon');
+                if (icon) {
+                    icon.style.transform = isCurrentlyOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
+                }
+            } else {
+                // Diğerlerini kapat
+                body.style.display = 'none';
+                const icon = body.parentElement.querySelector('.accordion-icon');
+                if (icon) {
+                    icon.style.transform = 'rotate(-90deg)'; // Kapalı konumu (sağa dönük ok)
+                }
+            }
+        });
+    };
+    
     document.getElementById('mod-thick')?.addEventListener('input', () => {
         window.updateShelfGapInfo();
         if (typeof window.update3DModel === 'function') window.update3DModel();
@@ -1133,28 +1159,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const sectionId = sectionCount;
         
         const sectionHtml = `
-            <div class="section-card" id="section-${sectionId}">
-                <div class="section-card-header">
-                    <span class="section-label">${sectionId}. Bölüm</span>
-                    <button class="btn-remove-section" onclick="removeSection(${sectionId})"><i class="fas fa-trash"></i></button>
+            <div class="section-card" id="section-${sectionId}" style="transition: all 0.3s ease;">
+                <div class="section-card-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 6px; margin-bottom: 5px;" onclick="toggleSectionAccordion(${sectionId})">
+                    <span class="section-label" style="font-weight: 600; font-size: 1.05rem;"><i class="fas fa-chevron-down accordion-icon" style="margin-right: 8px; transition: transform 0.3s ease;"></i>${sectionId}. Bölüm</span>
+                    <button class="btn-remove-section" onclick="event.stopPropagation(); removeSection(${sectionId})"><i class="fas fa-trash"></i></button>
                 </div>
-                <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
-                    <div class="input-group-col">
-                        <label>Bölüm Yüksekliği (mm)</label>
-                        <input type="number" class="sec-h" value="400">
+                <div class="section-body" id="section-body-${sectionId}" style="padding: 5px;">
+                    <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="input-group-col">
+                            <label>Bölüm Yüksekliği (mm)</label>
+                            <input type="number" class="sec-h" value="400">
+                        </div>
+                        <div class="input-group-col">
+                            <label>Sütun (Orta Dikme) Sayısı</label>
+                            <input type="number" class="sec-cols-count" value="1" min="1" max="5">
+                        </div>
                     </div>
-                    <div class="input-group-col">
-                        <label>Sütun (Orta Dikme) Sayısı</label>
-                        <input type="number" class="sec-cols-count" value="1" min="1" max="5">
+                    <div class="columns-container" id="columns-container-${sectionId}" style="margin-top: 15px; display:flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto;">
+                        <!-- Sütunlar buraya eklenecek -->
                     </div>
-                </div>
-                <div class="columns-container" id="columns-container-${sectionId}" style="margin-top: 15px; display:flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto;">
-                    <!-- Sütunlar buraya eklenecek -->
                 </div>
             </div>
         `;
         
         container.insertAdjacentHTML('beforeend', sectionHtml);
+        
+        // Yeni eklenen bölümü aç, diğerlerini kapat
+        if (typeof window.toggleSectionAccordion === 'function') {
+            window.toggleSectionAccordion(sectionId);
+        }
         
         const newCard = document.getElementById(`section-${sectionId}`);
         const colCountInput = newCard.querySelector('.sec-cols-count');
