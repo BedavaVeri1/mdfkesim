@@ -942,6 +942,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 tCtx.lineWidth = 2;
                 tCtx.strokeRect(x, y, w, h);
 
+                // Bantlama Göstergesi (Kırmızı Çizgiler)
+                tCtx.lineWidth = 4;
+                tCtx.strokeStyle = '#dc2626'; // Kırmızı
+                tCtx.beginPath();
+                let bandsForDraw = [...b.banding];
+                if (b.fit.rotated) {
+                    // 90 derece dönüş: Top->Right, Right->Bottom, Bottom->Left, Left->Top
+                    bandsForDraw = [b.banding[3], b.banding[0], b.banding[1], b.banding[2]];
+                }
+                if (bandsForDraw[0]) { tCtx.moveTo(x, y); tCtx.lineTo(x + w, y); } // Top
+                if (bandsForDraw[1]) { tCtx.moveTo(x + w, y); tCtx.lineTo(x + w, y + h); } // Right
+                if (bandsForDraw[2]) { tCtx.moveTo(x, y + h); tCtx.lineTo(x + w, y + h); } // Bottom
+                if (bandsForDraw[3]) { tCtx.moveTo(x, y); tCtx.lineTo(x, y + h); } // Left
+                tCtx.stroke();
+
                 // İsim ve Ölçüler
                 tCtx.fillStyle = '#0f172a';
                 tCtx.textAlign = 'center';
@@ -1058,24 +1073,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const y = row * h;
 
             // Canvas kullanarak etiketi yüksek çözünürlükte çizme (Türkçe ve Font desteği için)
-            const cW = w * 4;
-            const cH = h * 4;
+            const sf = 4;
+            const cW = w * sf;
+            const cH = h * sf;
             const can = document.createElement('canvas');
             can.width = cW;
             can.height = cH;
             const ctx = can.getContext('2d');
-            ctx.scale(4, 4);
 
             // Arkaplan ve Çerçeve
             ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, w, h);
+            ctx.fillRect(0, 0, cW, cH);
             ctx.strokeStyle = '#c8c8c8';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(2, 2, w - 4, h - 4);
+            ctx.lineWidth = 4;
+            ctx.strokeRect(8, 8, cW - 16, cH - 16);
 
             // Başlık (Parça Adı)
             ctx.fillStyle = 'black';
-            ctx.font = 'bold 11px Outfit, sans-serif';
+            ctx.font = 'bold 20px Outfit, sans-serif';
             ctx.textBaseline = 'top';
             let nameToPrint = part.name || "İsimsiz Parça";
             
@@ -1086,7 +1101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let n = 0; n < words.length; n++) {
                 let testLine = line + words[n] + ' ';
                 let metrics = ctx.measureText(testLine);
-                if (metrics.width > w - 10 && n > 0) {
+                if (metrics.width > cW - 40 && n > 0) {
                     lines.push(line);
                     line = words[n] + ' ';
                 } else {
@@ -1102,20 +1117,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             lines.forEach((l, idx) => {
-                ctx.fillText(l.trim(), 5, 5 + (idx * 14));
+                ctx.fillText(l.trim(), 20, 20 + (idx * 26));
             });
 
-            let yOffset = lines.length > 1 ? 32 : 18;
+            let yOffset = lines.length > 1 ? 100 : 75;
 
             // Ölçüler
-            ctx.font = 'bold 22px Outfit, sans-serif';
+            ctx.font = 'bold 44px Outfit, sans-serif';
             const cutBoy = part.finishH;
             const cutEn = part.finishW;
-            ctx.fillText(`${cutBoy} x ${cutEn}`, 5, yOffset);
+            ctx.fillText(`${cutBoy} x ${cutEn}`, 20, yOffset);
 
             // Plaka
-            ctx.font = 'normal 10px Outfit, sans-serif';
-            ctx.fillText(`Plaka: ${part.sheetId}`, 5, yOffset + 26);
+            ctx.font = 'normal 18px Outfit, sans-serif';
+            ctx.fillText(`Plaka: ${part.sheetId}`, 20, yOffset + 65);
 
             // Bant Bilgisi
             let bands = [];
@@ -1126,16 +1141,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (bands.length > 0) {
                 ctx.fillStyle = '#c80000';
-                ctx.font = 'normal 8px Outfit, sans-serif';
-                ctx.fillText(`BANT: ${bands.join(' - ')}`, 5, yOffset + 38);
+                ctx.font = 'normal 16px Outfit, sans-serif';
+                ctx.fillText(`BANT: ${bands.join(' - ')}`, 20, yOffset + 95);
                 ctx.fillStyle = 'black';
             }
 
             // QR Kod Yeri (Simülasyon - Kutu)
             ctx.strokeStyle = '#000';
-            ctx.strokeRect(w - 25, h - 25, 20, 20);
-            ctx.font = 'normal 6px Outfit, sans-serif';
-            ctx.fillText('QR', w - 18, h - 16);
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cW - 90, cH - 90, 70, 70);
+            ctx.font = 'normal 14px Outfit, sans-serif';
+            ctx.fillText('QR', cW - 65, cH - 55);
 
             // Canvas'ı resim olarak PDF'e ekle
             doc.addImage(can.toDataURL('image/jpeg', 1.0), 'JPEG', x, y, w, h);
