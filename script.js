@@ -56,6 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 50);
         });
+
+        const clearAllPartsBtn = document.getElementById('clear-all-parts-btn');
+        if (clearAllPartsBtn) {
+            clearAllPartsBtn.addEventListener('click', () => {
+                if (confirm('Tüm parçaları silmek istediğinizden emin misiniz?')) {
+                    dom.partsList.innerHTML = '';
+                    saveToLocalStorage();
+                    showToast('Tüm parçalar temizlendi.', 'info');
+                }
+            });
+        }
         dom.calculateBtn.addEventListener('click', runOptimization);
         dom.pdfBtn.addEventListener('click', generatePDF);
         dom.labelBtn.addEventListener('click', generateLabels);
@@ -190,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             }
-            alert(`${rows.length - 1} parça yüklendi.`);
+            showToast(`${rows.length - 1} parça başarıyla yüklendi!`, 'success');
         };
         reader.readAsArrayBuffer(file);
         // Reset input
@@ -296,8 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
         
-        // Sadece klasik yöntemde uyarı ver, share api kendi arayüzünü açıyor zaten
-        alert('Proje "' + fileName + '" adıyla indirilmeye çalışıldı. (İnmediyse tarayıcınız veya iOS sürümünüz engelliyor olabilir).');
+        showToast('Proje "' + fileName + '" başarıyla indirildi.', 'success');
     }
 
     function loadProject() {
@@ -393,9 +403,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (typeof window.update3DModel === 'function') window.update3DModel();
                     }
                     
-                    alert('Proje dosyası başarıyla yüklendi!');
+                    showToast('Proje dosyası başarıyla yüklendi!', 'success');
                 } catch (err) {
-                    alert('Geçersiz dosya formatı. Lütfen MdfKesim-Proje.json dosyasını seçtiğinizden emin olun.');
+                    showToast('Geçersiz dosya formatı. Lütfen MdfKesim-Proje.json dosyasını seçtiğinizden emin olun.', 'error');
                 }
             };
             reader.readAsText(file);
@@ -527,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cutPrice = parseFloat(dom.inputs.cutPrice.value) || 0;
         const bandPrice = parseFloat(document.getElementById('bandPrice').value) || 0;
 
-        if (!stockW || !stockH) { alert('Stok ölçülerini girin!'); return; }
+        if (!stockW || !stockH) { showToast('Lütfen önce Stok ölçülerini girin!', 'error'); return; }
 
         // 2. Parçaları Topla ve İşle (Bant Payı Düşme)
         let blocks = [];
@@ -575,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if (blocks.length === 0) { alert('Hesaplanacak geçerli bir parça bulunamadı. Lütfen En ve Boy ölçülerini girdiğinizden emin olun!'); return; }
+        if (blocks.length === 0) { showToast('Hesaplanacak geçerli bir parça bulunamadı. Lütfen En ve Boy ölçülerini girdiğinizden emin olun!', 'error'); return; }
 
         // Stratejiler
         const strategies = ['max_side', 'area', 'min_side', 'perimeter', 'mixed'];
@@ -1066,6 +1076,21 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open(doc.output('bloburl'), '_blank');
     }
 
+    // --- TOAST BİLDİRİM SİSTEMİ ---
+    window.showToast = function(msg, type='success') {
+        let toast = document.createElement('div');
+        toast.className = `toast-msg toast-${type}`;
+        toast.innerHTML = msg;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => { toast.classList.add('show'); }, 10);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
     // --- MODÜLER SİHİRBAZ: BÖLÜM (SECTION) MANTIĞI ---
     let sectionCount = 0;
     
@@ -1329,12 +1354,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!w || !overallH || !d || sections.length === 0) {
-            alert("Lütfen ölçüleri ve en az 1 bölüm giriniz.");
+            showToast("Lütfen ölçüleri ve en az 1 bölüm giriniz.", "error");
             return;
         }
 
         const baseType = document.getElementById('mod-base-type') ? document.getElementById('mod-base-type').value : 'normal';
         
+        const initialListLength = document.querySelectorAll('.part-row').length;
+
         const internalW = w - (2 * thick);
         let sideH;
         
@@ -1613,7 +1640,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('module-wizard-modal').style.display = 'none';
-        alert("Modüler dolap parçaları başarıyla listeye eklendi!");
+        const addedPartCount = document.querySelectorAll('.part-row').length - initialListLength;
+        showToast(`<b>${addedPartCount} parça</b> başarıyla kesim listesine aktarıldı!`, 'success');
     }
 
 });
