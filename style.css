@@ -299,9 +299,9 @@ body {
 .cost-grid label {
     display: block;
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--primary);
     margin-bottom: 4px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .cost-grid input {
@@ -330,7 +330,7 @@ body {
 
 label {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--primary);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -376,9 +376,9 @@ label {
     grid-template-columns: 2fr 1.2fr 1.2fr 0.8fr 30px 32px 30px;
     gap: 4px;
     align-items: center;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    color: var(--text-muted);
+    color: var(--primary);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     margin-bottom: 10px;

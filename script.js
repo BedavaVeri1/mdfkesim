@@ -899,6 +899,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function generatePDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+        
+        // Fontları manuel olarak ekle
+        if (window.addOutfitFontToPDF) window.addOutfitFontToPDF(doc);
+
         const sheets = projectState.sheets;
         const sw = projectState.settings.stockW;
         const sh = projectState.settings.stockH;
@@ -1027,6 +1031,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         // A4 Kağıda 2 sütun x 4 satır etiket (105mm x 74mm etiket) -> Toplam 8 Etiket
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+        
+        // Fontları manuel olarak ekle
+        if (window.addOutfitFontToPDF) window.addOutfitFontToPDF(doc);
 
         let col = 0;
         let row = 0;
