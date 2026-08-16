@@ -1000,32 +1000,39 @@ input[type="number"] {
 /* Update Toast (PWA) */
 .update-toast {
     position: fixed;
-    bottom: -100px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    pointer-events: none;
     background: #0f172a;
     color: white;
-    padding: 15px 25px;
+    padding: 20px 30px;
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 20px;
+    text-align: center;
+    gap: 15px;
     z-index: 9999;
-    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: 1px solid #334155;
     width: max-content;
     max-width: 90vw;
 }
 
 .update-toast.show {
-    bottom: 30px;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 .update-toast .update-content {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
 }
 
 .update-toast i {
