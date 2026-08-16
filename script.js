@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- PROJE KAYDET / YÜKLE (DOSYA OLARAK) ---
     async function saveProject() {
-        let projectName = prompt("Lütfen projeniz için bir isim girin (Müşteri veya İş Adı):", "MdfKesim-Siparis");
+        let projectName = await window.showCustomPrompt("Lütfen projeniz için bir isim girin (Müşteri veya İş Adı):", "MdfKesim-Siparis");
         
         // Eğer kullanıcı İptal'e basarsa kaydetmeyi durdur
         if (projectName === null) return; 
@@ -1164,6 +1164,72 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.appendChild(btnContainer);
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
+    }
+    
+    // --- CUSTOM PROMPT MODAL ---
+    window.showCustomPrompt = function(msg, defaultVal) {
+        return new Promise((resolve) => {
+            let overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0'; overlay.style.left = '0'; overlay.style.width = '100%'; overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            overlay.style.zIndex = '99999';
+            overlay.style.display = 'flex'; overlay.style.alignItems = 'center'; overlay.style.justifyContent = 'center';
+            
+            let modal = document.createElement('div');
+            modal.style.backgroundColor = '#fff';
+            modal.style.padding = '25px';
+            modal.style.borderRadius = '8px';
+            modal.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+            modal.style.textAlign = 'center';
+            modal.style.minWidth = '300px';
+            
+            let text = document.createElement('p');
+            text.innerHTML = msg;
+            text.style.marginBottom = '15px';
+            text.style.fontSize = '1.1rem';
+            text.style.color = '#333';
+            
+            let input = document.createElement('input');
+            input.type = 'text';
+            input.value = defaultVal || '';
+            input.style.width = '100%';
+            input.style.padding = '10px';
+            input.style.marginBottom = '20px';
+            input.style.border = '1px solid #ccc';
+            input.style.borderRadius = '4px';
+            input.style.fontSize = '1rem';
+            
+            let btnContainer = document.createElement('div');
+            btnContainer.style.display = 'flex'; btnContainer.style.justifyContent = 'center'; btnContainer.style.gap = '15px';
+            
+            let btnCancel = document.createElement('button');
+            btnCancel.className = 'btn-secondary';
+            btnCancel.style.width = 'auto'; btnCancel.style.margin = '0';
+            btnCancel.innerHTML = 'İptal';
+            
+            let btnOk = document.createElement('button');
+            btnOk.className = 'btn-primary';
+            btnOk.style.width = 'auto'; btnOk.style.margin = '0'; 
+            btnOk.innerHTML = 'Kaydet';
+            
+            btnCancel.onclick = () => { overlay.remove(); resolve(null); };
+            btnOk.onclick = () => { overlay.remove(); resolve(input.value); };
+            
+            input.onkeyup = (e) => { if (e.key === 'Enter') btnOk.click(); };
+            
+            btnContainer.appendChild(btnCancel);
+            btnContainer.appendChild(btnOk);
+            
+            modal.appendChild(text);
+            modal.appendChild(input);
+            modal.appendChild(btnContainer);
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            input.focus();
+            input.select();
+        });
     }
 
     // --- MODÜLER SİHİRBAZ: BÖLÜM (SECTION) MANTIĞI ---
