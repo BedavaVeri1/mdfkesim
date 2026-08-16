@@ -895,20 +895,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return colorMap[key];
     }
 
-    // Türkçe karakterleri İngilizce eşdeğerlerine dönüştürme fonksiyonu (PDF sorunları için)
-    function sanitizeTurkish(text) {
-        if (!text) return "";
-        const map = {
-            'ş': 's', 'Ş': 'S',
-            'ğ': 'g', 'Ğ': 'G',
-            'ç': 'c', 'Ç': 'C',
-            'ı': 'i', 'İ': 'I',
-            'ö': 'o', 'Ö': 'O',
-            'ü': 'u', 'Ü': 'U'
-        };
-        return text.replace(/[şŞğĞçÇıİöÖüÜ]/g, match => map[match]);
-    }
-
     // --- PDF RAPOR ---
     function generatePDF() {
         const { jsPDF } = window.jspdf;
@@ -921,10 +907,16 @@ document.addEventListener('DOMContentLoaded', () => {
         sheets.forEach((sheet, i) => {
             if (i > 0) doc.addPage();
 
-            // Başlık
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(16);
-            doc.text(sanitizeTurkish(`Kesim Planı - Plaka ${i + 1}`), 10, 10);
+            // Başlık (Canvas kullanarak Türkçe ve Outfit fontu)
+            const titleCan = document.createElement('canvas');
+            titleCan.width = 800;
+            titleCan.height = 50;
+            const titleCtx = titleCan.getContext('2d');
+            titleCtx.fillStyle = 'black';
+            titleCtx.font = 'bold 36px Outfit, sans-serif';
+            titleCtx.textBaseline = 'top';
+            titleCtx.fillText(`Kesim Planı - Plaka ${i + 1}`, 0, 0);
+            doc.addImage(titleCan.toDataURL('image/png'), 'PNG', 10, 8, 100, 6.25);
 
             // Geçici Canvas (Yüksek Kalite)
             const tCan = document.createElement('canvas');
@@ -1065,39 +1057,65 @@ document.addEventListener('DOMContentLoaded', () => {
             const x = col * w;
             const y = row * h;
 
-            // Etiket Çerçeve
-            doc.setDrawColor(200);
-            doc.rect(x + 2, y + 2, w - 4, h - 4); // Marginli
+            // Canvas kullanarak etiketi yüksek çözünürlükte çizme (Türkçe ve Font desteği için)
+            const cW = w * 4;
+            const cH = h * 4;
+            const can = document.createElement('canvas');
+            can.width = cW;
+            can.height = cH;
+            const ctx = can.getContext('2d');
+            ctx.scale(4, 4);
 
-            // İçerik
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
+            // Arkaplan ve Çerçeve
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, w, h);
+            ctx.strokeStyle = '#c8c8c8';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(2, 2, w - 4, h - 4);
+
+            // Başlık (Parça Adı)
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 11px Outfit, sans-serif';
+            ctx.textBaseline = 'top';
+            let nameToPrint = part.name || "İsimsiz Parça";
             
-            // Uzun isimleri alt satıra kaydırarak sığdırma (105mm için) ve Türkçe düzeltme
-            let rawName = part.name || "İsimsiz Parça";
-            let nameToPrint = sanitizeTurkish(rawName);
-            let splitName = doc.splitTextToSize(nameToPrint, w - 10);
+            // Satır kırma (basit kelime kırma mantığı)
+            let words = nameToPrint.split(' ');
+            let line = '';
+            let lines = [];
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > w - 10 && n > 0) {
+                    lines.push(line);
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
             
-            // Eğer çok uzunsa (2 satırdan fazlaysa) etiketten taşmasın diye kırp
-            if (splitName.length > 2) {
-                splitName = splitName.slice(0, 2);
-                splitName[1] += "...";
+            // Max 2 satır
+            if (lines.length > 2) {
+                lines = lines.slice(0, 2);
+                lines[1] = lines[1].replace(/\s+$/, '') + '...';
             }
             
-            doc.text(splitName, x + 5, y + 15);
+            lines.forEach((l, idx) => {
+                ctx.fillText(l.trim(), 5, 5 + (idx * 14));
+            });
 
-            // Başlığın kaç satır tuttuğuna göre ölçünün Y koordinatını ayarla
-            let yOffset = splitName.length > 1 ? (splitName.length * 5) + 15 : 25;
+            let yOffset = lines.length > 1 ? 32 : 18;
 
-            doc.setFontSize(22);
-            // Rotasyon durumundan bağımsız olarak her zaman orijinal Boy (finishH) x En (finishW)
+            // Ölçüler
+            ctx.font = 'bold 22px Outfit, sans-serif';
             const cutBoy = part.finishH;
             const cutEn = part.finishW;
-            doc.text(`${cutBoy} x ${cutEn}`, x + 5, y + yOffset);
+            ctx.fillText(`${cutBoy} x ${cutEn}`, 5, yOffset);
 
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Plaka: ${part.sheetId}`, x + 5, y + yOffset + 10);
+            // Plaka
+            ctx.font = 'normal 10px Outfit, sans-serif';
+            ctx.fillText(`Plaka: ${part.sheetId}`, 5, yOffset + 26);
 
             // Bant Bilgisi
             let bands = [];
@@ -1107,16 +1125,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (part.banding[3]) bands.push('SOL');
 
             if (bands.length > 0) {
-                doc.setTextColor(200, 0, 0);
-                doc.setFontSize(8);
-                doc.text(`BANT: ${bands.join(' - ')}`, x + 5, y + yOffset + 18);
-                doc.setTextColor(0);
+                ctx.fillStyle = '#c80000';
+                ctx.font = 'normal 8px Outfit, sans-serif';
+                ctx.fillText(`BANT: ${bands.join(' - ')}`, 5, yOffset + 38);
+                ctx.fillStyle = 'black';
             }
 
             // QR Kod Yeri (Simülasyon - Kutu)
-            doc.rect(x + w - 25, y + h - 25, 20, 20);
-            doc.setFontSize(6);
-            doc.text('QR', x + w - 18, y + h - 14);
+            ctx.strokeStyle = '#000';
+            ctx.strokeRect(w - 25, h - 25, 20, 20);
+            ctx.font = 'normal 6px Outfit, sans-serif';
+            ctx.fillText('QR', w - 18, h - 16);
+
+            // Canvas'ı resim olarak PDF'e ekle
+            doc.addImage(can.toDataURL('image/jpeg', 1.0), 'JPEG', x, y, w, h);
 
             // Koordinat artır
             col++;
