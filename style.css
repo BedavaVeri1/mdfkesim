@@ -106,10 +106,11 @@ body {
     color: white;
     font-size: 0.6rem;
     font-weight: 700;
-    padding: 3px 8px;
+    padding: 4px 10px; /* Slightly more padding for better look */
     border-radius: 20px;
     letter-spacing: 0.5px;
     box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+    transform: translateY(-2px); /* Fix vertical alignment */
 }
 
 /* Minimal Toolbar */
