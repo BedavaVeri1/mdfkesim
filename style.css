@@ -91,22 +91,28 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 .logo-area h2 i {
-    -webkit-text-fill-color: var(--primary);
+    color: var(--primary);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .owner-text {
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.5px;
-    margin-left: 2px; /* Biraz boşluk */
-    align-self: flex-end; /* Alt çizgiye (baseline) hizala */
-    margin-bottom: 5px; /* Alt çizgiyi MdfKesim ile tam eşitlemek için ince ayar */
+    margin-left: 2px;
+    align-self: flex-end;
+    margin-bottom: 5px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     opacity: 0.85; 
 }
 
