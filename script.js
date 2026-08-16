@@ -243,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const project = {
             parts: parts,
             settings: {
-            settings: {
                 stockW: dom.inputs.stockW.value,
                 stockH: dom.inputs.stockH.value,
                 kerf: dom.inputs.kerf.value,
