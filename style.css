@@ -104,9 +104,10 @@ body {
     font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.5px;
-    margin-left: -2px; /* MdfKesim'e biraz daha yakın dursun */
-    transform: translateY(2px); /* Optik olarak tam ortaya (MdfKesim'in göbeğine) hizalama */
-    opacity: 0.85; /* Ana başlıktan bir tık daha mat dursun ki hiyerarşi korunsun */
+    margin-left: 2px; /* Biraz boşluk */
+    align-self: flex-end; /* Alt çizgiye (baseline) hizala */
+    margin-bottom: 5px; /* Alt çizgiyi MdfKesim ile tam eşitlemek için ince ayar */
+    opacity: 0.85; 
 }
 
 .badge {
