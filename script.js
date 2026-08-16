@@ -1,5 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- ŞİFRE KORUMASI (GİRİŞ EKRANI) ---
+    const CORRECT_PASSWORD = "123"; // Buradaki şifreyi isteğinize göre değiştirebilirsiniz
+    const loginOverlay = document.getElementById('login-overlay');
+    const loginPassword = document.getElementById('login-password');
+    const loginBtn = document.getElementById('login-btn');
+    const loginError = document.getElementById('login-error');
+
+    // Daha önce giriş yapılmış mı kontrol et
+    if (localStorage.getItem('mdfkesim_auth') === 'true') {
+        loginOverlay.classList.add('hidden');
+    }
+
+    const checkPassword = () => {
+        if (loginPassword.value === CORRECT_PASSWORD) {
+            localStorage.setItem('mdfkesim_auth', 'true');
+            loginOverlay.classList.add('hidden');
+        } else {
+            loginError.style.display = 'block';
+            loginOverlay.querySelector('.login-box').classList.remove('shake');
+            void loginOverlay.querySelector('.login-box').offsetWidth; // Reflow for animation
+            loginOverlay.querySelector('.login-box').classList.add('shake');
+            loginPassword.value = '';
+            loginPassword.focus();
+        }
+    };
+
+    loginBtn.addEventListener('click', checkPassword);
+    loginPassword.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') checkPassword();
+    });
+
+
     // --- DOM ELEMENTLERİ ---
     const dom = {
         partsList: document.getElementById('parts-list'),

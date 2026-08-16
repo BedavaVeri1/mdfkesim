@@ -25,6 +25,20 @@
 
 <body>
 
+    <!-- Giriş Ekranı (Şifre Koruması) -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-box">
+            <h2 style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-lock" style="color: var(--primary);"></i> 
+                <span class="gradient-text">MdfKesim</span>
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Lütfen erişim şifrenizi girin.</p>
+            <input type="password" id="login-password" placeholder="Şifre" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 1.1rem; text-align: center; outline: none;">
+            <button id="login-btn" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem; font-weight: 600;">Giriş Yap</button>
+            <p id="login-error" style="color: #dc2626; font-size: 0.85rem; margin-top: 15px; display: none; text-align: center; font-weight: 600;">Hatalı şifre!</p>
+        </div>
+    </div>
+
     <div class="app-container">
         <div class="sidebar">
             <div class="logo-area">
