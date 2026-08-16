@@ -100,6 +100,15 @@ body {
     -webkit-text-fill-color: var(--primary);
 }
 
+.owner-text {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-left: -2px; /* MdfKesim'e biraz daha yakın dursun */
+    transform: translateY(2px); /* Optik olarak tam ortaya (MdfKesim'in göbeğine) hizalama */
+    opacity: 0.85; /* Ana başlıktan bir tık daha mat dursun ki hiyerarşi korunsun */
+}
+
 .badge {
     background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
     -webkit-text-fill-color: white;
