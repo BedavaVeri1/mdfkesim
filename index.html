@@ -243,13 +243,73 @@
     <script src="script.js"></script>
     <script src="3d-viewer.js"></script>
     
-    <!-- Service Worker Kaydı (PWA) -->
+    <!-- Güncelleme Uyarı Toast -->
+    <div id="update-toast" class="update-toast">
+        <div class="update-content">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+            <div>
+                <strong>Yeni Sürüm Hazır!</strong>
+                <p>Uygulamayı yenilemek için tıklayın.</p>
+            </div>
+        </div>
+        <button id="update-btn" class="btn btn-primary">Yenile</button>
+    </div>
+
+    <!-- PWA Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
+                let refreshing = false;
+
+                // Yeni SW kontrolü ele aldığında sayfayı yenile
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        refreshing = true;
+                        window.location.reload();
+                    }
+                });
+
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker kaydedildi.', reg))
+                    .then(reg => {
+                        console.log('Service Worker kaydedildi.', reg);
+
+                        // Güncelleme bekleyen bir SW var mı?
+                        if (reg.waiting) {
+                            showUpdateToast(reg.waiting);
+                        }
+
+                        // Yeni bir SW yüklenirken dinle
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                // Yükleme bitti ve beklemeye geçtiyse
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    showUpdateToast(newWorker);
+                                }
+                            });
+                        });
+                    })
                     .catch(err => console.log('Service Worker hatası:', err));
+            });
+        }
+
+        // Güncelleme bildirimini gösteren fonksiyon
+        function showUpdateToast(worker) {
+            const toast = document.getElementById('update-toast');
+            const btn = document.getElementById('update-btn');
+            
+            // Eğer toast zaten gösteriliyorsa tekrar gösterme
+            if(toast.classList.contains('show')) return;
+            
+            toast.classList.add('show');
+            
+            btn.addEventListener('click', () => {
+                // Bekleyen SW'ye atla (skipWaiting) komutu gönder
+                worker.postMessage({ action: 'skipWaiting' });
+                toast.classList.remove('show');
+                
+                // Acil durum için 3 saniye sonra zorla yenile (eğer controllerchange tetiklenmezse)
+                setTimeout(() => window.location.reload(), 3000);
             });
         }
     </script>

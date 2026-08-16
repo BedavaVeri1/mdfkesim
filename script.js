@@ -816,7 +816,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Yazı
                 if (dw > 4 && dh > 4) {
                     const textName = b.name; // İsim artık kısaltılmıyor
-                    const dimText = b.fit.rotated ? `${b.finishH}x${b.finishW}(R)` : `${b.finishH}x${b.finishW}`;
+                    const dimText = b.fit.rotated ? `${b.finishH}x${b.finishW}(D)` : `${b.finishH}x${b.finishW}`;
                     const fullText = `${textName} ${dimText}`;
 
                     ctx.save();
@@ -966,7 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const textName = b.name;
                     const cutBoy = b.fit.rotated ? b.finishW : b.finishH;
                     const cutEn = b.fit.rotated ? b.finishH : b.finishW;
-                    const dimText = b.fit.rotated ? `${cutBoy}x${cutEn}(R)` : `${cutBoy}x${cutEn}`;
+                    const dimText = b.fit.rotated ? `${cutBoy}x${cutEn}(D)` : `${cutBoy}x${cutEn}`;
                     const fullText = `${textName} ${dimText}`;
                     
                     tCtx.save();

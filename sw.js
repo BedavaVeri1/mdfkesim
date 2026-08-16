@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mdfkesim-v58';
+const CACHE_NAME = 'mdfkesim-v1.1';
 const ASSETS = [
     './',
     './index.html',
@@ -15,10 +15,17 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', event => {
-    self.skipWaiting(); // Yeni versiyonu anında kur
+    // Beklemeye geç (skipWaiting'i sadece kullanıcı Yenile'ye basınca tetikleyeceğiz)
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
     );
+});
+
+// Güncelleme onaylandığında SW'ye geçiş izni
+self.addEventListener('message', event => {
+    if (event.data && event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
 });
 
 self.addEventListener('activate', event => {
