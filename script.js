@@ -1718,6 +1718,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. Alt ve Üst Tablalar
         addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
         addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        
+        // 2.5 Taç (Üst Taşkınlık)
+        // Genişlik dolabın net genişliği (w), derinlik gövdeden 25mm fazla (d + 25)
+        addPartRow({ name: "Taç (Üst)", h: w, w: d + 25, q: 1, rot: true, b: [true, true, false, true] });
 
         // 3. Bölüm Arası Sabit Raflar
         if (sections.length > 1) {
