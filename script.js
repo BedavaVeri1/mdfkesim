@@ -1,11 +1,4 @@
 
-window.addEventListener('error', function(e) {
-    alert('HATA: ' + e.message + ' satır: ' + e.lineno);
-});
-window.addEventListener('unhandledrejection', function(e) {
-    alert('HATA: ' + e.reason);
-});
-
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- ŞİFRE KORUMASI (GİRİŞ EKRANI) ---
@@ -151,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
             clearAllPartsBtn.addEventListener('click', () => {
                 showCustomConfirm('Tüm parçaları silmek istediğinizden emin misiniz?', () => {
                     dom.partsList.innerHTML = '';
-                    saveToLocalStorage();
                     showToast('Tüm parçalar temizlendi.', 'info');
                 });
             });
