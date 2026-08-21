@@ -335,7 +335,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // Projeyi kaydetmeden önce aktif sekmeyi state'e at
+        if (typeof window.saveCurrentProjectToState === 'function') window.saveCurrentProjectToState();
+        
         const project = {
+            parts: Array.from(document.querySelectorAll('.part-row')).map(row => ({
             parts: parts,
             settings: {
                 stockW: dom.inputs.stockW.value,
@@ -346,6 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cutPrice: document.getElementById('cutPrice') ? document.getElementById('cutPrice').value : 50,
                 bandPrice: document.getElementById('bandPrice') ? document.getElementById('bandPrice').value : 15
             },
+            wizardProjects: window.wizardProjects,
             moduleWizard: {
                 w: document.getElementById('mod-w').value,
                 h: document.getElementById('mod-h').value,
@@ -462,59 +467,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     // Modül Sihirbazı Verilerini Yükle
-                    if (project.moduleWizard && project.moduleWizard.sections) {
-                        document.getElementById('mod-w').value = project.moduleWizard.w || '';
-                        document.getElementById('mod-h').value = project.moduleWizard.h || '';
-                        document.getElementById('mod-d').value = project.moduleWizard.d || '';
-                        document.getElementById('mod-thick').value = project.moduleWizard.thick || 18;
-                        if(project.moduleWizard.baseType) document.getElementById('mod-base-type').value = project.moduleWizard.baseType;
-                        document.getElementById('mod-base-h').value = project.moduleWizard.baseH || 0;
-                        
-                        const container = document.getElementById('sections-container');
-                        if (container) {
-                            container.innerHTML = '';
-                            if (typeof window.resetSectionCount === 'function') window.resetSectionCount();
-                            
-                            project.moduleWizard.sections.forEach(sec => {
-                                window.addSection();
-                                const lastCard = container.lastElementChild;
-                                if (lastCard) {
-                                    lastCard.querySelector('.sec-h').value = sec.h || '';
-                                    const colInput = lastCard.querySelector('.sec-cols-count');
-                                    colInput.value = sec.colsCount || 1;
-                                    colInput.dispatchEvent(new Event('input')); // Sütunları DOM'a bas
-                                    
-                                    const colCards = lastCard.querySelectorAll('.column-card');
-                                    if (sec.columns) {
-                                        sec.columns.forEach((colData, cIdx) => {
-                                            if (colCards[cIdx]) {
-                                                colCards[cIdx].querySelector('.col-shelf-qty').value = colData.shelfQty || 0;
-                                                colCards[cIdx].querySelector('.col-door-qty').value = colData.doorQty || 0;
-                                                colCards[cIdx].querySelector('.col-stack-qty').value = colData.stackQty || 0;
-                                                if (colCards[cIdx].querySelector('.col-drawer-qty')) colCards[cIdx].querySelector('.col-drawer-qty').value = colData.drawerQty || 0;
-                                                if (colCards[cIdx].querySelector('.col-door-shelf-dist')) colCards[cIdx].querySelector('.col-door-shelf-dist').value = colData.doorShelfDist || '';
-                                                if (colCards[cIdx].querySelector('.col-door-w-dist')) colCards[cIdx].querySelector('.col-door-w-dist').value = colData.doorWDist || '';
-                                                colCards[cIdx].querySelector('.col-gap').value = colData.gap || 20;
-                                                colCards[cIdx].querySelector('.col-custom-w').value = colData.customW || '';
-                                                colCards[cIdx].querySelector('.col-custom-drawers').value = colData.customDrawers || '';
-                                                colCards[cIdx].querySelector('.col-custom-shelves').value = colData.customShelves || '';
-                                            }
-                                        });
-                                    } else if (colCards[0]) {
-                                        // Eski Versiyon (v20) Uyumluluğu: Sütun yoksa, eski verileri 1. sütuna aktar
-                                        colCards[0].querySelector('.col-shelf-qty').value = sec.shelfQty || 0;
-                                        colCards[0].querySelector('.col-door-qty').value = sec.doorQty || 0;
-                                        colCards[0].querySelector('.col-stack-qty').value = 1;
-                                        colCards[0].querySelector('.col-gap').value = sec.gap || 20;
-                                        colCards[0].querySelector('.col-custom-shelves').value = sec.customShelves || '';
-                                    }
-                                }
-                            });
-                        }
-                        
-                        if (typeof window.updateShelfGapInfo === 'function') window.updateShelfGapInfo();
-                        if (typeof window.update3DModel === 'function') window.update3DModel();
+                    if (project.wizardProjects && project.wizardProjects.length > 0) {
+                        window.wizardProjects = project.wizardProjects;
+                        window.activeProjectId = window.wizardProjects[0].id;
+                        let maxId = 1;
+                        window.wizardProjects.forEach(p => { if(p.id > maxId) maxId = p.id; });
+                        window.nextProjectId = maxId + 1;
+                        window.loadProjectToForm(window.activeProjectId);
+                    } else if (project.moduleWizard && project.moduleWizard.sections) {
+                        // Eski formatı yeni formata çevir
+                        window.wizardProjects = [{
+                            id: 1,
+                            name: "Eski Proje",
+                            mode: "horizontal",
+                            data: project.moduleWizard
+                        }];
+                        window.activeProjectId = 1;
+                        window.nextProjectId = 2;
+                        window.loadProjectToForm(1);
                     }
+                    if (typeof window.renderWizardTabs === 'function') window.renderWizardTabs();
                     
                     showToast('Proje dosyası başarıyla yüklendi!', 'success');
                 } catch (err) {
