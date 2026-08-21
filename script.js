@@ -192,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
             wizardBtn.addEventListener('click', () => { 
                 wizardModal.style.display = 'block'; 
                 if (typeof window.renderWizardTabs === 'function') window.renderWizardTabs();
+                if (typeof window.update3DModel === 'function') window.update3DModel();
             });
             closeWizard.addEventListener('click', () => { wizardModal.style.display = 'none'; });
             window.addEventListener('click', (e) => {
@@ -1586,12 +1587,21 @@ document.addEventListener('DOMContentLoaded', () => {
                                         cCard.querySelector('.col-door-qty').value = colData.doorQty || 0;
                                         cCard.querySelector('.col-stack-qty').value = colData.stackQty || 0;
                                         if (cCard.querySelector('.col-drawer-qty')) cCard.querySelector('.col-drawer-qty').value = colData.drawerQty || 0;
+                                        if (cCard.querySelector('.col-gap')) cCard.querySelector('.col-gap').value = colData.gap || 20;
                                         if (cCard.querySelector('.col-custom-w')) cCard.querySelector('.col-custom-w').value = colData.customW || "";
                                         if (cCard.querySelector('.col-custom-drawers')) cCard.querySelector('.col-custom-drawers').value = colData.customDrawers || "";
                                         if (cCard.querySelector('.col-custom-shelves')) cCard.querySelector('.col-custom-shelves').value = colData.customShelves || "";
                                         if (cCard.querySelector('.col-door-shelf-dist')) cCard.querySelector('.col-door-shelf-dist').value = colData.doorShelfDist || "";
+                                        if (cCard.querySelector('.col-door-w-dist')) cCard.querySelector('.col-door-w-dist').value = colData.doorWDist || "";
                                     }
                                 });
+                            } else if (colCards[0]) {
+                                // Eski Versiyon (v20) Uyumluluğu
+                                colCards[0].querySelector('.col-shelf-qty').value = sec.shelfQty || 0;
+                                colCards[0].querySelector('.col-door-qty').value = sec.doorQty || 0;
+                                colCards[0].querySelector('.col-stack-qty').value = 1;
+                                if (colCards[0].querySelector('.col-gap')) colCards[0].querySelector('.col-gap').value = sec.gap || 20;
+                                if (colCards[0].querySelector('.col-custom-shelves')) colCards[0].querySelector('.col-custom-shelves').value = sec.customShelves || "";
                             }
                         }
                     });
