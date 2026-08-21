@@ -633,7 +633,11 @@ function update3DModel() {
                             cabinetGroup.add(handleMesh);
                         } else {
                             if (col.doorQty === 1) {
-                                handleX = dCenterX + (doorW / 2) - 40; 
+                                if (sec.colsCount > 1 && cIdx >= sec.colsCount / 2) {
+                                    handleX = dCenterX - (doorW / 2) + 40; 
+                                } else {
+                                    handleX = dCenterX + (doorW / 2) - 40; 
+                                }
                             } else {
                                 if (dIdx < col.doorQty / 2) {
                                     handleX = dCenterX + (doorW / 2) - 40; 
