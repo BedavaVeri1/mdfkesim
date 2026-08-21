@@ -1,3 +1,11 @@
+
+window.addEventListener('error', function(e) {
+    alert('HATA: ' + e.message + ' satır: ' + e.lineno);
+});
+window.addEventListener('unhandledrejection', function(e) {
+    alert('HATA: ' + e.reason);
+});
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- ŞİFRE KORUMASI (GİRİŞ EKRANI) ---
@@ -2336,9 +2344,47 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        document.getElementById('module-wizard-modal').style.display = 'none';
-        const addedPartCount = document.querySelectorAll('.part-row').length - initialListLength;
-        showToast(`<b>${addedPartCount} parça</b> başarıyla kesim listesine aktarıldı!`, 'success');
+        addPartRow = originalAddPartRow;
+        return true;
+    }
+
+    function generateModuleParts() {
+        if (typeof window.saveCurrentProjectToState === 'function') window.saveCurrentProjectToState();
+        const originalActiveId = window.activeProjectId;
+        
+        let successCount = 0;
+        const initialListLength = document.querySelectorAll('.part-row').length;
+        
+        if (window.wizardProjects && window.wizardProjects.length > 0) {
+            window.wizardProjects.forEach(proj => {
+                if (typeof window.loadProjectToForm === 'function') window.loadProjectToForm(proj.id);
+                
+                const w = parseFloat(document.getElementById('mod-w').value);
+                const overallH = parseFloat(document.getElementById('mod-h').value);
+                const d = parseFloat(document.getElementById('mod-d').value);
+                const sections = document.querySelectorAll('.section-card');
+                
+                if (w && overallH && d && sections.length > 0) {
+                    const success = generateSingleModuleParts(proj.name);
+                    if (success) successCount++;
+                }
+            });
+            
+            if (typeof window.loadProjectToForm === 'function') window.loadProjectToForm(originalActiveId);
+        } else {
+            const success = generateSingleModuleParts("Dolap");
+            if (success) successCount++;
+        }
+        
+        if (successCount > 0) {
+            document.getElementById('module-wizard-modal').style.display = 'none';
+            if (typeof saveToLocalStorage === 'function') saveToLocalStorage();
+            if (typeof updateUI === 'function') updateUI();
+            const addedPartCount = document.querySelectorAll('.part-row').length - initialListLength;
+            if (typeof showToast === 'function') showToast('<b>' + addedPartCount + ' parça (' + successCount + ' dolap)</b> başarıyla kesim listesine aktarıldı!', 'success');
+        } else {
+            if (typeof showToast === 'function') showToast('Lütfen en az bir dolabın ölçülerini tam giriniz.', 'error');
+        }
     }
 
 });
