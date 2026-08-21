@@ -339,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.saveCurrentProjectToState === 'function') window.saveCurrentProjectToState();
         
         const project = {
-            parts: Array.from(document.querySelectorAll('.part-row')).map(row => ({
             parts: parts,
             settings: {
                 stockW: dom.inputs.stockW.value,
