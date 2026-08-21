@@ -1720,8 +1720,11 @@ document.addEventListener('DOMContentLoaded', () => {
         addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
         
         // 2.5 Taç (Üst Taşkınlık)
-        // Genişlik dolabın net genişliği (w), derinlik gövdeden 25mm fazla (d + 25)
-        addPartRow({ name: "Taç (Üst)", h: w, w: d + 25, q: 1, rot: true, b: [true, true, false, true] });
+        const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
+        if (addCrown) {
+            // Genişlik dolabın net genişliği (w), derinlik gövdeden 25mm fazla (d + 25)
+            addPartRow({ name: "Taç (Üst)", h: w, w: d + 25, q: 1, rot: true, b: [true, true, false, true] });
+        }
 
         // 3. Bölüm Arası Sabit Raflar
         if (sections.length > 1) {
