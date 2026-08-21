@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modül Sihirbazı Modu ('horizontal' = katmanlı, 'vertical' = yan yana modüler)
     window.moduleWizardMode = 'horizontal';
+    
+    // Modül Sihirbazı Çoklu Proje (Sekme) State Yönetimi
+    window.wizardProjects = [{ id: 1, name: "Dolap 1", data: null }];
+    window.activeProjectId = 1;
+    window.nextProjectId = 2;
 
     // Eski kalıcı hafızayı (localStorage) temizle ki eski şifrelerle girenlerin de oturumu kapansın
     localStorage.removeItem('mdfkesim_auth');
@@ -184,7 +189,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const generateModuleBtn = document.getElementById('generate-module-btn');
 
         if (wizardBtn && wizardModal) {
-            wizardBtn.addEventListener('click', () => { wizardModal.style.display = 'block'; });
+            wizardBtn.addEventListener('click', () => { 
+                wizardModal.style.display = 'block'; 
+                if (typeof window.renderWizardTabs === 'function') window.renderWizardTabs();
+            });
             closeWizard.addEventListener('click', () => { wizardModal.style.display = 'none'; });
             window.addEventListener('click', (e) => {
                 if (e.target === wizardModal) wizardModal.style.display = 'none';
@@ -1517,6 +1525,205 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.update3DModel === 'function') window.update3DModel();
     });
     
+
+    // --- PROJE SEKME (TAB) YÖNETİMİ ---
+    window.saveCurrentProjectToState = function() {
+        const proj = window.wizardProjects.find(p => p.id === window.activeProjectId);
+        if (!proj) return;
+        
+        proj.name = document.getElementById('mod-cabinet-name').value || "Dolap " + proj.id;
+        proj.mode = window.moduleWizardMode;
+        
+        const sectionsData = Array.from(document.querySelectorAll('.section-card')).map(card => {
+            const rawCols = parseInt(card.querySelector('.sec-cols-count').value);
+            return {
+                h: parseFloat(card.querySelector('.sec-h').value) || 0,
+                colsCount: isNaN(rawCols) || rawCols < 1 ? 1 : rawCols,
+                columns: Array.from(card.querySelectorAll('.column-card')).map(col => {
+                    const rawShelf = parseInt(col.querySelector('.col-shelf-qty').value);
+                    const rawDoor = parseInt(col.querySelector('.col-door-qty').value);
+                    const rawStack = parseInt(col.querySelector('.col-stack-qty').value);
+                    return {
+                        shelfQty: isNaN(rawShelf) ? 0 : rawShelf,
+                        doorQty: isNaN(rawDoor) ? 0 : rawDoor,
+                        stackQty: isNaN(rawStack) ? 0 : rawStack,
+                        drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
+                        gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
+                        customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
+                        customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
+                        customShelves: col.querySelector('.col-custom-shelves') ? col.querySelector('.col-custom-shelves').value : "",
+                        doorShelfDist: col.querySelector('.col-door-shelf-dist') ? col.querySelector('.col-door-shelf-dist').value : "",
+                        doorWDist: col.querySelector('.col-door-w-dist') ? col.querySelector('.col-door-w-dist').value : ""
+                    };
+                })
+            };
+        });
+        
+        proj.data = {
+            w: document.getElementById('mod-w').value,
+            h: document.getElementById('mod-h').value,
+            d: document.getElementById('mod-d').value,
+            thick: document.getElementById('mod-thick').value,
+            baseType: document.getElementById('mod-base-type').value,
+            baseH: document.getElementById('mod-base-h').value,
+            addCrown: document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true,
+            sections: sectionsData
+        };
+    }
+
+    window.loadProjectToForm = function(id) {
+        const proj = window.wizardProjects.find(p => p.id === id);
+        if (!proj) return;
+        
+        document.getElementById('mod-cabinet-name').value = proj.name;
+        
+        if (proj.mode && proj.mode !== window.moduleWizardMode) {
+            window.moduleWizardMode = proj.mode;
+            if (typeof updateWizardModeUI === 'function') updateWizardModeUI();
+        }
+        
+        if (proj.data) {
+            document.getElementById('mod-w').value = proj.data.w || '';
+            document.getElementById('mod-h').value = proj.data.h || '';
+            document.getElementById('mod-d').value = proj.data.d || '';
+            document.getElementById('mod-thick').value = proj.data.thick || 18;
+            document.getElementById('mod-base-type').value = proj.data.baseType || 'normal';
+            document.getElementById('mod-base-h').value = proj.data.baseH || 0;
+            if(document.getElementById('mod-add-crown')) document.getElementById('mod-add-crown').checked = proj.data.addCrown !== false;
+            
+            const container = document.getElementById('sections-container');
+            if (container) {
+                container.innerHTML = '';
+                if (typeof window.resetSectionCount === 'function') window.resetSectionCount();
+                
+                if (proj.data.sections && proj.data.sections.length > 0) {
+                    proj.data.sections.forEach(sec => {
+                        window.addSection();
+                        const lastCard = container.lastElementChild;
+                        if (lastCard) {
+                            lastCard.querySelector('.sec-h').value = sec.h || '';
+                            const colInput = lastCard.querySelector('.sec-cols-count');
+                            colInput.value = sec.colsCount || 1;
+                            colInput.dispatchEvent(new Event('input')); // Sütunları DOM'a bas
+                            
+                            const colCards = lastCard.querySelectorAll('.column-card');
+                            if (sec.columns) {
+                                sec.columns.forEach((colData, idx) => {
+                                    if (idx < colCards.length) {
+                                        const cCard = colCards[idx];
+                                        cCard.querySelector('.col-shelf-qty').value = colData.shelfQty || 0;
+                                        cCard.querySelector('.col-door-qty').value = colData.doorQty || 0;
+                                        cCard.querySelector('.col-stack-qty').value = colData.stackQty || 0;
+                                        if (cCard.querySelector('.col-drawer-qty')) cCard.querySelector('.col-drawer-qty').value = colData.drawerQty || 0;
+                                        if (cCard.querySelector('.col-custom-w')) cCard.querySelector('.col-custom-w').value = colData.customW || "";
+                                        if (cCard.querySelector('.col-custom-drawers')) cCard.querySelector('.col-custom-drawers').value = colData.customDrawers || "";
+                                        if (cCard.querySelector('.col-custom-shelves')) cCard.querySelector('.col-custom-shelves').value = colData.customShelves || "";
+                                        if (cCard.querySelector('.col-door-shelf-dist')) cCard.querySelector('.col-door-shelf-dist').value = colData.doorShelfDist || "";
+                                    }
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    window.addSection();
+                }
+            }
+        } else {
+            // Veri yoksa temizle
+            document.getElementById('mod-w').value = '';
+            document.getElementById('mod-h').value = '';
+            document.getElementById('mod-d').value = '';
+            document.getElementById('sections-container').innerHTML = '';
+            window.resetSectionCount();
+            window.addSection();
+        }
+        
+        window.updateShelfGapInfo();
+        if (typeof window.update3DModel === 'function') window.update3DModel();
+    }
+
+    window.renderWizardTabs = function() {
+        const container = document.getElementById('wizard-tabs-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        window.wizardProjects.forEach(proj => {
+            const isActive = proj.id === window.activeProjectId;
+            const tabBtn = document.createElement('button');
+            tabBtn.className = isActive ? 'btn-primary' : 'btn-secondary';
+            tabBtn.style.padding = '4px 12px';
+            tabBtn.style.margin = '0';
+            tabBtn.style.fontSize = '0.9rem';
+            tabBtn.style.whiteSpace = 'nowrap';
+            if(!isActive) {
+                tabBtn.style.background = '#e2e8f0';
+                tabBtn.style.border = 'none';
+                tabBtn.style.color = '#475569';
+            }
+            
+            tabBtn.innerHTML = `<span>${proj.name}</span> <i class="fas fa-times delete-tab-btn" style="margin-left: 5px; cursor:pointer; opacity: 0.6;" data-id="${proj.id}"></i>`;
+            
+            tabBtn.onclick = (e) => {
+                if (e.target.classList.contains('delete-tab-btn')) return;
+                if (proj.id === window.activeProjectId) return;
+                window.saveCurrentProjectToState();
+                window.activeProjectId = proj.id;
+                window.loadProjectToForm(proj.id);
+                window.renderWizardTabs();
+            };
+            
+            const delBtn = tabBtn.querySelector('.delete-tab-btn');
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (window.wizardProjects.length === 1) {
+                    showToast('En az 1 dolap projesi olmak zorundadır.', 'error');
+                    return;
+                }
+                showCustomConfirm('Bu dolabı projeden silmek istediğinize emin misiniz?', () => {
+                    window.wizardProjects = window.wizardProjects.filter(p => p.id !== proj.id);
+                    if (window.activeProjectId === proj.id) {
+                        window.activeProjectId = window.wizardProjects[0].id;
+                        window.loadProjectToForm(window.activeProjectId);
+                    }
+                    window.renderWizardTabs();
+                });
+            };
+            
+            container.appendChild(tabBtn);
+        });
+        
+        const addTabBtn = document.createElement('button');
+        addTabBtn.className = 'btn-secondary';
+        addTabBtn.style.padding = '4px 8px';
+        addTabBtn.style.margin = '0';
+        addTabBtn.style.background = 'transparent';
+        addTabBtn.style.border = '1px dashed var(--primary)';
+        addTabBtn.style.color = 'var(--primary)';
+        addTabBtn.innerHTML = '<i class="fas fa-plus"></i> Yeni';
+        addTabBtn.onclick = () => {
+            window.saveCurrentProjectToState();
+            const newId = window.nextProjectId++;
+            window.wizardProjects.push({ id: newId, name: 'Dolap ' + newId, data: null, mode: window.moduleWizardMode });
+            window.activeProjectId = newId;
+            window.loadProjectToForm(newId);
+            window.renderWizardTabs();
+        };
+        container.appendChild(addTabBtn);
+    }
+    
+    // Dolap adı değişince sekmeyi hemen güncelle
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('mod-cabinet-name')?.addEventListener('input', (e) => {
+            const proj = window.wizardProjects.find(p => p.id === window.activeProjectId);
+            if (proj) {
+                proj.name = e.target.value || "Dolap " + proj.id;
+                window.renderWizardTabs();
+            }
+        });
+    });
+
+    // window.addSection fonksiyonunun üzerine yerleştiriyoruz...
+
     window.addSection = function() {
         sectionCount++;
         const container = document.getElementById('sections-container');
@@ -1729,7 +1936,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function generateModuleParts() {
+    function generateSingleModuleParts(projName) {
+        // Geçici olarak addPartRow'u ez (isimlere prefix eklemek için)
+        const originalAddPartRow = addPartRow;
+        addPartRow = function(data = {}) {
+            if (data.name) {
+                data.name = projName + ' - ' + data.name;
+            }
+            originalAddPartRow(data);
+        };
+
         const thick = parseFloat(document.getElementById('mod-thick').value) || 18;
         const w = parseFloat(document.getElementById('mod-w').value);
         const overallH = parseFloat(document.getElementById('mod-h').value);
@@ -1762,8 +1978,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!w || !overallH || !d || sections.length === 0) {
-            showToast("Lütfen ölçüleri ve en az 1 bölüm giriniz.", "error");
-            return;
+            addPartRow = originalAddPartRow;
+            return false;
         }
 
         const baseType = document.getElementById('mod-base-type') ? document.getElementById('mod-base-type').value : 'normal';

@@ -186,13 +186,22 @@
     <div id="module-wizard-modal" class="modal">
         <div class="modal-content modal-content-large">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light);">
-                <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary);">Hazır Modül Sihirbazı</h2>
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary);">Hazır Modül Sihirbazı</h2>
+                    <div id="wizard-tabs-container" style="display: flex; gap: 5px; overflow-x: auto; max-width: 600px;">
+                        <!-- Sekmeler JS ile buraya basılacak -->
+                    </div>
+                </div>
                 <button id="close-wizard" class="btn btn-primary" style="margin: 0; width: auto; padding: 8px 16px;"><i class="fas fa-arrow-left"></i> Ana Ekrana Dön</button>
             </div>
             
             <div class="modal-layout">
                 <!-- Sol Taraf: Form -->
                 <div class="modal-form-side">
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-weight: 600; font-size: 0.85rem; color: var(--primary);">Dolap Adı / Etiketi (Tüm parçalara ön ek olarak yazılır)</label>
+                        <input type="text" id="mod-cabinet-name" value="Dolap 1" style="width: 100%; border: 2px solid var(--primary); background: #f8fafc;" placeholder="Örn: Ayakkabılık">
+                    </div>
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; margin-top: -10px;">Dış ölçüleri girin, program tüm parçaları hesaplasın ve 3 boyutlu çizsin.</p>
                     
                     <div style="display: none; gap: 10px; margin-bottom: 15px; background: #f1f5f9; padding: 5px; border-radius: 8px;">
@@ -249,7 +258,7 @@
 
                     <button id="add-section-btn" class="btn-secondary" style="margin-top: 15px; width: 100%; border: 1px dashed var(--primary); color: var(--primary);"><i class="fas fa-plus"></i> Yeni Bölüm Ekle</button>
 
-                    <button id="generate-module-btn" class="btn-primary" style="margin-top:20px; width:100%;"><i class="fas fa-check"></i> Parçaları Listeye Ekle</button>
+                    <button id="generate-module-btn" class="btn-primary" style="margin-top:20px; width:100%;"><i class="fas fa-check"></i> Tüm Projeyi Listeye Yolla</button>
                 </div>
                 
                 <!-- Sağ Taraf: 3D Önizleme -->
