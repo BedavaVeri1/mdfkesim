@@ -1550,7 +1550,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
                         <div class="input-group-col">
                             <label>${input1Label}</label>
-                            <input type="number" class="sec-h" value="${isVert ? '600' : '400'}">
+                            <input type="number" class="sec-h" value="${isVert ? '' : '400'}" placeholder="${isVert ? 'Otomatik' : ''}">
                         </div>
                         ${colHtml}
                     </div>
