@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('login-btn');
     const loginError = document.getElementById('login-error');
 
+    // Modül Sihirbazı Modu ('horizontal' = katmanlı, 'vertical' = yan yana modüler)
+    window.moduleWizardMode = 'horizontal';
+
     // Eski kalıcı hafızayı (localStorage) temizle ki eski şifrelerle girenlerin de oturumu kapansın
     localStorage.removeItem('mdfkesim_auth');
 
@@ -1434,11 +1437,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSectionLabels() {
+        const isVert = window.moduleWizardMode === 'vertical';
+        const labelName = isVert ? 'Modül' : 'Bölüm';
         const cards = document.querySelectorAll('.section-card');
         cards.forEach((card, index) => {
             const label = card.querySelector('.section-label');
             if (label) {
-                label.textContent = `${index + 1}. Bölüm`;
+                label.innerHTML = `<i class="fas fa-chevron-down accordion-icon" style="margin-right: 8px; transition: transform 0.3s ease;"></i>${index + 1}. ${labelName}`;
             }
         });
     }
@@ -1518,22 +1523,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         const sectionId = sectionCount;
         
+        const isVert = window.moduleWizardMode === 'vertical';
+        const labelName = isVert ? 'Modül' : 'Bölüm';
+        const input1Label = isVert ? 'Modül İç Genişliği (mm)' : 'Bölüm Yüksekliği (mm)';
+        
+        // Yan Yana modda modül içini bölmeyeceğiz (sütun = 1 sabit).
+        const colHtml = isVert ? `
+            <div class="input-group-col" style="display: none;">
+                <label>Sütun (Orta Dikme) Sayısı</label>
+                <input type="number" class="sec-cols-count" value="1" min="1" max="1">
+            </div>
+        ` : `
+            <div class="input-group-col">
+                <label>Sütun (Orta Dikme) Sayısı</label>
+                <input type="number" class="sec-cols-count" value="1" min="1" max="5">
+            </div>
+        `;
+        
         const sectionHtml = `
             <div class="section-card" id="section-${sectionId}" style="transition: all 0.3s ease;">
                 <div class="section-card-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 6px; margin-bottom: 5px;" onclick="toggleSectionAccordion(${sectionId})">
-                    <span class="section-label" style="font-weight: 600; font-size: 1.05rem;"><i class="fas fa-chevron-down accordion-icon" style="margin-right: 8px; transition: transform 0.3s ease;"></i>${sectionId}. Bölüm</span>
+                    <span class="section-label" style="font-weight: 600; font-size: 1.05rem;"><i class="fas fa-chevron-down accordion-icon" style="margin-right: 8px; transition: transform 0.3s ease;"></i>${sectionId}. ${labelName}</span>
                     <button class="btn-remove-section" onclick="event.stopPropagation(); removeSection(${sectionId})"><i class="fas fa-trash"></i></button>
                 </div>
                 <div class="section-body" id="section-body-${sectionId}" style="padding: 5px;">
                     <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
                         <div class="input-group-col">
-                            <label>Bölüm Yüksekliği (mm)</label>
-                            <input type="number" class="sec-h" value="400">
+                            <label>${input1Label}</label>
+                            <input type="number" class="sec-h" value="${isVert ? '600' : '400'}">
                         </div>
-                        <div class="input-group-col">
-                            <label>Sütun (Orta Dikme) Sayısı</label>
-                            <input type="number" class="sec-cols-count" value="1" min="1" max="5">
-                        </div>
+                        ${colHtml}
                     </div>
                     <div class="columns-container" id="columns-container-${sectionId}" style="margin-top: 15px; display:flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto;">
                         <!-- Sütunlar buraya eklenecek -->
@@ -1643,6 +1662,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    const modeBtnH = document.getElementById('mode-btn-horizontal');
+    const modeBtnV = document.getElementById('mode-btn-vertical');
+    
+    function updateWizardModeUI() {
+        if (window.moduleWizardMode === 'horizontal') {
+            modeBtnH.className = 'btn-primary';
+            modeBtnH.style.border = 'none';
+            modeBtnH.style.background = 'var(--primary)';
+            modeBtnH.style.color = '#fff';
+            
+            modeBtnV.className = 'btn-secondary';
+            modeBtnV.style.background = 'transparent';
+            modeBtnV.style.color = 'var(--dark)';
+            
+            addBtn.innerHTML = '<i class="fas fa-plus"></i> Yeni Bölüm Ekle';
+        } else {
+            modeBtnV.className = 'btn-primary';
+            modeBtnV.style.border = 'none';
+            modeBtnV.style.background = 'var(--primary)';
+            modeBtnV.style.color = '#fff';
+            
+            modeBtnH.className = 'btn-secondary';
+            modeBtnH.style.background = 'transparent';
+            modeBtnH.style.color = 'var(--dark)';
+            
+            addBtn.innerHTML = '<i class="fas fa-plus"></i> Yeni Modül Ekle (Dikey)';
+        }
+        
+        // Reset sections when mode changes
+        document.getElementById('sections-container').innerHTML = '';
+        window.sectionCount = 0;
+        window.addSection();
+    }
+    
+    if (modeBtnH && modeBtnV) {
+        modeBtnH.addEventListener('click', () => {
+            if (window.moduleWizardMode !== 'horizontal') {
+                window.moduleWizardMode = 'horizontal';
+                updateWizardModeUI();
+            }
+        });
+        modeBtnV.addEventListener('click', () => {
+            if (window.moduleWizardMode !== 'vertical') {
+                window.moduleWizardMode = 'vertical';
+                updateWizardModeUI();
+            }
+        });
+    }
+
     const addBtn = document.getElementById('add-section-btn');
     if (addBtn) addBtn.addEventListener('click', window.addSection);
     
@@ -1711,6 +1779,91 @@ document.addEventListener('DOMContentLoaded', () => {
             sideH = overallH - baseH;
         }
 
+        // --- YAN YANA (DİKEY) MOD MANTIĞI ---
+        if (window.moduleWizardMode === 'vertical') {
+            // 1. Dış İskelet (Alt/Üst/Yanlar)
+            addPartRow({ name: "Sağ Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
+            addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
+            
+            addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+            addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+            
+            if (baseType === 'closed' && baseH > 7) {
+                addPartRow({ name: "Ön Baza", h: baseH - 7, w: internalW, q: 1, rot: true, b: [false, true, false, false] });
+            }
+            
+            const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
+            if (addCrown) {
+                addPartRow({ name: "Taç (Üst)", h: w, w: d + 25, q: 1, rot: true, b: [true, true, false, true] });
+            }
+
+            // 2. Modüller (Sütunlar) Arası Ara Dikmeler
+            const moduleCount = sections.length;
+            const innerH = sideH - (2 * thick);
+            if (moduleCount > 1) {
+                addPartRow({ name: "Modül Ara Dikme", h: innerH, w: d, q: moduleCount - 1, rot: true, b: [false, true, false, false] });
+            }
+
+            // 3. Modül İçi Raflar ve Kapaklar
+            // Genişlik hesabı
+            const availableModW = internalW - ((moduleCount - 1) * thick);
+            let customModWTotal = 0;
+            let customModCols = 0;
+            sections.forEach(sec => {
+                if (sec.h && sec.h > 0) { // sec.h aslında modül genişliği oldu
+                    customModWTotal += sec.h;
+                    customModCols++;
+                }
+            });
+            const remainingModW = availableModW - customModWTotal;
+            const defaultModW = remainingModW / (moduleCount - customModCols);
+
+            sections.forEach((sec, index) => {
+                const modW = (sec.h && sec.h > 0) ? sec.h : defaultModW;
+                const col = sec.columns[0]; // Sadece ilk sütunu alıyoruz (tek sütun kuralı)
+                
+                // Raflar (15mm içeride kuralı)
+                if (col.shelfQty > 0) {
+                    addPartRow({ name: `${index+1}. Modül İç Raf`, h: modW, w: d - 15, q: col.shelfQty, rot: true, b: [false, true, false, false] });
+                }
+
+                // Çekmeceler
+                if (col.drawerQty > 0) {
+                    const drawerW = modW - 50; // Kasa 50mm dar
+                    const drawerD = d - 50;
+                    const drawerH = 150; // Standart çekmece kasa yüksekliği
+                    
+                    addPartRow({ name: `${index+1}. Modül Çekmece Klapası`, h: modW - 4, w: 185, q: col.drawerQty, rot: true, b: [true, true, true, true] });
+                    addPartRow({ name: `${index+1}. Modül Çekm. Ön/Arka Kasa`, h: drawerW, w: drawerH, q: col.drawerQty * 2, rot: true, b: [true, false, false, false] });
+                    addPartRow({ name: `${index+1}. Modül Çekm. Yan Kasa`, h: drawerD, w: drawerH, q: col.drawerQty * 2, rot: true, b: [true, false, false, false] });
+                }
+
+                // Kapaklar
+                if (col.doorQty > 0 && col.stackQty > 0) {
+                    const innerGapsH = (col.stackQty - 1) * 4;
+                    const drawerTotalH = col.drawerQty * 185 + (col.drawerQty * 4);
+                    const usableH = innerH - drawerTotalH - innerGapsH - 4; // Alt üst 2mm boşluk
+                    const doorH = usableH / col.stackQty;
+                    
+                    const singleDoorW = modW; // Çift kapak yoksa
+                    let actualDoorW = singleDoorW - 4; // Sağ sol 2mm derz
+                    let actualDoorQty = col.doorQty * col.stackQty;
+                    
+                    if (col.doorQty === 2) {
+                        actualDoorW = (modW - 8) / 2; // Ortadan 4mm derz
+                    }
+                    
+                    addPartRow({ name: `${index+1}. Modül Kapak`, h: doorH, w: actualDoorW, q: actualDoorQty, rot: true, b: [true, true, true, true] });
+                }
+            });
+
+            if (document.querySelectorAll('.part-row').length > initialListLength) {
+                showToast("Modüler liste başarıyla oluşturuldu!", "success");
+            }
+            return; // Dikey mod tamamlandı, alttaki yatay koda geçme
+        }
+
+        // --- KATMANLI (YATAY) MOD MANTIĞI ---
         // 1. Yan Dikmeler
         addPartRow({ name: "Sağ Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
         addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });

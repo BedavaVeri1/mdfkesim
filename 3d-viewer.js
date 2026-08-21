@@ -289,7 +289,105 @@ function update3DModel() {
     // --- 3. BÖLÜMLERİ İNŞA ET ---
     let currentOuterY = baseH; 
     
-    sections.forEach((sec, index) => {
+    if (window.moduleWizardMode === 'vertical') {
+        const innerH = sideH - (2 * thick);
+        const moduleCount = sections.length;
+        
+        const topY = baseH + sideH - (thick / 2);
+        cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
+        currentOuterY = baseH + sideH; 
+        
+        const availableModW = innerW - ((moduleCount - 1) * thick);
+        let customModWTotal = 0;
+        let customModCols = 0;
+        sections.forEach(sec => {
+            if (sec.h && sec.h > 0) {
+                customModWTotal += sec.h;
+                customModCols++;
+            }
+        });
+        const remainingModW = availableModW - customModWTotal;
+        const defaultModW = remainingModW / (moduleCount - customModCols);
+        
+        let currentModX = -(innerW / 2); 
+        
+        sections.forEach((sec, index) => {
+            const modW = (sec.h && sec.h > 0) ? sec.h : defaultModW;
+            const col = sec.columns[0];
+            
+            if (index < moduleCount - 1) {
+                const dikmeX = currentModX + modW + (thick / 2);
+                const dikmeY = baseH + (sideH / 2);
+                cabinetGroup.add(createPanel(thick, innerH, d, dikmeX, dikmeY, 0));
+            }
+            
+            if (col.shelfQty > 0) {
+                let customShelves = [];
+                if (col.customShelves && col.customShelves.trim() !== "") {
+                    customShelves = col.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+                }
+                const totalShelfThick = col.shelfQty * thick;
+                const netEmptySpace = innerH - totalShelfThick;
+                const defaultShelfGap = netEmptySpace / (col.shelfQty + 1);
+                
+                let shelfCurrentY = baseH + thick; 
+                for (let i = 0; i < col.shelfQty; i++) {
+                    let thisGap = customShelves[i] ? customShelves[i] : defaultShelfGap;
+                    shelfCurrentY += thisGap;
+                    const sY = shelfCurrentY + (thick / 2);
+                    const sX = currentModX + (modW / 2);
+                    const sZ = -7.5; 
+                    cabinetGroup.add(createPanel(modW, thick, d - 15, sX, sY, sZ));
+                    shelfCurrentY += thick;
+                }
+            }
+            
+            let drawerTotalH = 0;
+            if (col.drawerQty > 0) {
+                let customDrawers = [];
+                if (col.customDrawers && col.customDrawers.trim() !== "") {
+                    customDrawers = col.customDrawers.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+                }
+                let drawerCurrentY = baseH + thick;
+                for (let stack = 0; stack < col.drawerQty; stack++) {
+                    let drawerH = 185; 
+                    if (customDrawers[stack]) drawerH = customDrawers[stack];
+                    const drW = modW - 4; 
+                    const drX = currentModX + (modW / 2);
+                    const drY = drawerCurrentY + (drawerH / 2) + 2; 
+                    const drZ = (d / 2) + 2; 
+                    cabinetGroup.add(createPanel(drW, drawerH, thick, drX, drY, drZ, true));
+                    drawerCurrentY += drawerH + 4;
+                }
+                drawerTotalH = col.drawerQty * 185 + (col.drawerQty * 4); 
+            }
+            
+            if (col.doorQty > 0 && col.stackQty > 0) {
+                const innerGapsH = (col.stackQty - 1) * 4;
+                const usableH = innerH - drawerTotalH - innerGapsH - 4; 
+                const doorH = usableH / col.stackQty;
+                const doorW = col.doorQty === 2 ? (modW - 8) / 2 : modW - 4;
+                let currentDoorY = baseH + thick + drawerTotalH + 2; 
+                for (let stack = 0; stack < col.stackQty; stack++) {
+                    const dY = currentDoorY + (doorH / 2);
+                    const dZ = (d / 2) + 2;
+                    if (col.doorQty === 2) {
+                        const dXLeft = currentModX + (doorW / 2) + 2;
+                        const dXRight = currentModX + modW - (doorW / 2) - 2;
+                        cabinetGroup.add(createPanel(doorW, doorH, thick, dXLeft, dY, dZ, true));
+                        cabinetGroup.add(createPanel(doorW, doorH, thick, dXRight, dY, dZ, true));
+                    } else {
+                        const dX = currentModX + (modW / 2);
+                        cabinetGroup.add(createPanel(doorW, doorH, thick, dX, dY, dZ, true));
+                    }
+                    currentDoorY += doorH + 4;
+                }
+            }
+            currentModX += modW + thick;
+        });
+    } else {
+        sections.forEach((sec, index) => {
+
         let netH;
         let currentInnerY;
         
@@ -616,6 +714,7 @@ function update3DModel() {
         
         currentOuterY += sec.h;
     });
+    }
 
     // --- TAÇ (ÜST ÇIKINTI) ---
     const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
