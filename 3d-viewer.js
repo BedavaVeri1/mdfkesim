@@ -617,6 +617,17 @@ function update3DModel() {
         currentOuterY += sec.h;
     });
 
+    // --- TAÇ (ÜST ÇIKINTI) ---
+    const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
+    if (addCrown) {
+        const crownY = currentOuterY + (thick / 2);
+        // Taç ön tarafa doğru 25mm taşacak. 
+        // Derinlik d+25. Arka yüzü dolap arkasıyla sıfır (z = -d/2). 
+        // Dolayısıyla Z merkezi = -d/2 + (d+25)/2 = 12.5 olur.
+        const crownZ = 12.5; 
+        cabinetGroup.add(createPanel(w, thick, d + 25, 0, crownY, crownZ));
+    }
+
     // Kamerayı yeni boyuta göre hedefe kilitle
     controls.target.set(0, overallH/2, 0);
     

@@ -1646,6 +1646,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBtn = document.getElementById('add-section-btn');
     if (addBtn) addBtn.addEventListener('click', window.addSection);
     
+    const crownCheck = document.getElementById('mod-add-crown');
+    if (crownCheck) crownCheck.addEventListener('change', () => {
+        if (typeof window.update3DModel === 'function') window.update3DModel();
+    });
+    
     const openModBtn = document.getElementById('open-module-wizard-btn');
     if (openModBtn) {
         openModBtn.addEventListener('click', () => {

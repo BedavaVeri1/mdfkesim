@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mdfkesim-v1.18';
+const CACHE_NAME = 'mdfkesim-v1.19';
 const ASSETS = [
     './',
     './index.html',
