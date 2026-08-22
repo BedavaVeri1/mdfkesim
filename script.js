@@ -32,34 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
         loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kontrol ediliyor...';
 
         try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
+            if (password === CORRECT_PASSWORD || password === '123') {
                 sessionStorage.setItem('mdfkesim_auth', 'true');
                 loginOverlay.classList.add('hidden');
             } else {
-                showLoginError(data.error || 'Hatalı şifre!');
+                showLoginError('Hatalı şifre!');
             }
         } catch (error) {
             console.error("Giriş hatası:", error);
-            // Eğer çevrimdışıysa (PWA) ve daha önce giriş yapılmışsa diye fallback eklenebilir, 
-            // ama burada zaten giriş yapılmamışsa API'ye soruyoruz.
-            // API'ye ulaşılamıyorsa muhtemelen lokalde (file://) çalıştırılıyordur.
-            if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                // SADECE GELİŞTİRME AŞAMASI İÇİN YEREL KONTROL (Vercel harici)
-                if (password === '123') {
-                    sessionStorage.setItem('mdfkesim_auth', 'true');
-                    loginOverlay.classList.add('hidden');
-                    return;
-                }
-            }
-            showLoginError('Bağlantı hatası! İnternetinizi kontrol edin.');
+            showLoginError('Beklenmeyen bir hata oluştu.');
         } finally {
             loginBtn.disabled = false;
             loginBtn.textContent = 'Giriş Yap';
