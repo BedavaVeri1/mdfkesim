@@ -172,6 +172,24 @@ function createPanel(w, h, d, x, y, z, isDoor = false) {
 
 function update3DModel() {
     if (!cabinetGroup) return;
+    
+    // YÜKSEKLİK KONTROLÜ
+    const overallH = parseFloat(document.getElementById('mod-h').value) || 0;
+    const baseH = document.getElementById('mod-add-base').checked ? 100 : 0;
+    const thick = 18;
+    const innerH = overallH - baseH - (2 * thick);
+    
+    let totalSecH = 0;
+    document.querySelectorAll('.section-card').forEach(card => {
+        totalSecH += parseFloat(card.querySelector('.sec-h').value) || 0;
+    });
+    
+    if (window.moduleWizardMode !== 'vertical' && totalSecH > innerH + 5) {
+        const fark = totalSecH - innerH;
+        if (typeof showToast === 'function') {
+            showToast('DİKKAT: Bölüm yükseklikleri toplamı, dolabın iç yüksekliğini tam <b>' + fark.toFixed(0) + ' mm aşıyor!</b>', 'error');
+        }
+    }
 
     // Mevcut çizimi temizle
     while(cabinetGroup.children.length > 0){ 
@@ -290,12 +308,13 @@ function update3DModel() {
     // --- 3. BÖLÜMLERİ İNŞA ET ---
     let currentOuterY = baseH; 
     
+    // HER ZAMAN EN ÜST TABLAYI ÇİZ (Kutu her zaman kapalı olmalı)
+    const topY = baseH + sideH - (thick / 2);
+    cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
+    
     if (window.moduleWizardMode === 'vertical') {
         const innerH = sideH - (2 * thick);
         const moduleCount = sections.length;
-        
-        const topY = baseH + sideH - (thick / 2);
-        cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
         currentOuterY = baseH + sideH; 
         
         const availableModW = innerW - ((moduleCount - 1) * thick);
