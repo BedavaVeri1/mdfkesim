@@ -743,7 +743,10 @@ function update3DModel() {
         
         // --- Bölüm Üst Tablası (veya Sabit Ara Raf) ---
         const topY = currentOuterY + sec.h - (thick / 2);
-        cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
+        const anaTavanY = baseH + sideH - (thick / 2);
+        if (topY < anaTavanY - 2) {
+            cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
+        }
         
         currentOuterY += sec.h;
     });

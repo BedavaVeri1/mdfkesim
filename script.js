@@ -2088,9 +2088,17 @@ document.addEventListener('DOMContentLoaded', () => {
             addPartRow({ name: "Taç (Üst)", h: w, w: d + 25, q: 1, rot: true, b: [true, true, false, true] });
         }
 
-        // 3. Bölüm Arası Sabit Raflar
-        if (sections.length > 1) {
-            addPartRow({ name: "Sabit Raf (Ara Bölücü)", h: internalW, w: d, q: sections.length - 1, rot: true, b: [false, true, false, false] });
+        // 3. Bölüm Arası Sabit Raflar (Tavana değiyorsa kesilmez)
+        let sabitRafCount = 0;
+        let cumulativeH = 0;
+        sections.forEach(sec => {
+            cumulativeH += sec.h || 0;
+            if (cumulativeH < internalH - 5) {
+                sabitRafCount++;
+            }
+        });
+        if (sabitRafCount > 0) {
+            addPartRow({ name: "Sabit Raf (Ara Bölücü)", h: internalW, w: d, q: sabitRafCount, rot: true, b: [false, true, false, false] });
         }
 
         // 4. Raflar, Kapaklar ve Orta Dikmeler (Sütunlara Göre)
