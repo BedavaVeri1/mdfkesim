@@ -490,7 +490,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     showToast('Proje dosyası başarıyla yüklendi!', 'success');
                 } catch (err) {
-                    showToast('Geçersiz dosya formatı. Lütfen MdfKesim-Proje.json dosyasını seçtiğinizden emin olun.', 'error');
+                    console.error(err);
+                    showToast('Geçersiz dosya formatı. Hata: ' + err.message, 'error');
                 }
             };
             reader.readAsText(file);

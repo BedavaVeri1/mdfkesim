@@ -175,7 +175,7 @@ function update3DModel() {
     
     // YÜKSEKLİK KONTROLÜ
     const tempOverallH = parseFloat(document.getElementById('mod-h').value) || 0;
-    const tempBaseH = document.getElementById('mod-add-base').checked ? 100 : 0;
+    const tempBaseH = parseFloat(document.getElementById('mod-base-h')?.value) || 0;
     const tempThick = 18;
     const tempInnerH = tempOverallH - tempBaseH - (2 * tempThick);
     
