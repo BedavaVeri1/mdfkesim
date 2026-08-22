@@ -470,15 +470,7 @@ function update3DModel() {
             } else {
                 topGap = 0;
             }
-        } else {
-            // Son bölüm! Tavana değiyorsa üst tablayı kapatmalı
-            let cumH = 0;
-            sections.forEach(s => cumH += (s.h || 0));
-            const innerH = sideH - (2 * thick);
-            if (cumH >= innerH - 5) {
-                sectionDoorTotalH += thick;
-            }
-        }
+
 
         sec.columns.forEach((col, cIdx) => {
             let colW = defaultColW;
