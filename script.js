@@ -2093,8 +2093,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let cumulativeH = 0;
         sections.forEach(sec => {
             cumulativeH += sec.h || 0;
-            const localInternalH = sideH - (2 * thick);
-            if (cumulativeH < localInternalH - 5) {
+            if (cumulativeH < sideH - 5) {
                 sabitRafCount++;
             }
         });
@@ -2164,8 +2163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 let cumH = 0;
                 sections.forEach(s => cumH += (s.h || 0));
-                const localInternalH = sideH - (2 * thick);
-                if (cumH >= localInternalH - 5) {
+                if (cumH >= sideH - 5) {
                     sectionDoorTotalH += thick;
                 }
             }

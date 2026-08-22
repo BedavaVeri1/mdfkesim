@@ -184,10 +184,10 @@ function update3DModel() {
         totalSecH += parseFloat(card.querySelector('.sec-h').value) || 0;
     });
     
-    if (window.moduleWizardMode !== 'vertical' && totalSecH > tempInnerH + 5) {
-        const fark = totalSecH - tempInnerH;
+    if (window.moduleWizardMode !== 'vertical' && totalSecH > tempSideH + 5) {
+        const fark = totalSecH - tempSideH;
         if (typeof showToast === 'function') {
-            showToast('DİKKAT: Bölüm yükseklikleri toplamı, dolabın iç yüksekliğini tam <b>' + fark.toFixed(0) + ' mm aşıyor!</b>', 'error');
+            showToast('DİKKAT: Bölüm yükseklikleri toplamı, dolabın gövde yüksekliğini tam <b>' + fark.toFixed(0) + ' mm aşıyor!</b>', 'error');
         }
     }
 
