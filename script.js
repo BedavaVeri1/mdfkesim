@@ -2148,6 +2148,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     topGap = 0;
                 }
+            } // ADDED MISSING BRACE
 
 
             sec.columns.forEach((col, cIdx) => {
