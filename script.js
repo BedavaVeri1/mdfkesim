@@ -2404,8 +2404,15 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('module-wizard-modal').style.display = 'none';
             if (typeof saveToLocalStorage === 'function') saveToLocalStorage();
             if (typeof updateUI === 'function') updateUI();
-            const addedPartCount = document.querySelectorAll('.part-row').length - initialListLength;
-            if (typeof showToast === 'function') showToast('<b>' + addedPartCount + ' parça (' + successCount + ' dolap)</b> başarıyla kesim listesine aktarıldı!', 'success');
+            const allRows = document.querySelectorAll('.part-row');
+            let addedQuantity = 0;
+            for (let i = initialListLength; i < allRows.length; i++) {
+                const qInput = allRows[i].querySelector('.p-q');
+                if (qInput) {
+                    addedQuantity += parseInt(qInput.value) || 0;
+                }
+            }
+            if (typeof showToast === 'function') showToast('<b>' + addedQuantity + ' adet ahşap parça (' + successCount + ' dolap)</b> başarıyla kesim listesine aktarıldı!', 'success');
         } else {
             if (typeof showToast === 'function') showToast('Lütfen en az bir dolabın ölçülerini tam giriniz.', 'error');
         }
