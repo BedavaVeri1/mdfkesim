@@ -2160,6 +2160,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     topGap = 0;
                 }
+            } else {
+                let cumH = 0;
+                sections.forEach(s => cumH += (s.h || 0));
+                if (cumH >= internalH - 5) {
+                    sectionDoorTotalH += thick;
+                }
             }
 
             sec.columns.forEach((col, cIdx) => {
