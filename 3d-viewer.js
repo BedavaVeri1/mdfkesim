@@ -174,18 +174,18 @@ function update3DModel() {
     if (!cabinetGroup) return;
     
     // YÜKSEKLİK KONTROLÜ
-    const overallH = parseFloat(document.getElementById('mod-h').value) || 0;
-    const baseH = document.getElementById('mod-add-base').checked ? 100 : 0;
-    const thick = 18;
-    const innerH = overallH - baseH - (2 * thick);
+    const tempOverallH = parseFloat(document.getElementById('mod-h').value) || 0;
+    const tempBaseH = document.getElementById('mod-add-base').checked ? 100 : 0;
+    const tempThick = 18;
+    const tempInnerH = tempOverallH - tempBaseH - (2 * tempThick);
     
     let totalSecH = 0;
     document.querySelectorAll('.section-card').forEach(card => {
         totalSecH += parseFloat(card.querySelector('.sec-h').value) || 0;
     });
     
-    if (window.moduleWizardMode !== 'vertical' && totalSecH > innerH + 5) {
-        const fark = totalSecH - innerH;
+    if (window.moduleWizardMode !== 'vertical' && totalSecH > tempInnerH + 5) {
+        const fark = totalSecH - tempInnerH;
         if (typeof showToast === 'function') {
             showToast('DİKKAT: Bölüm yükseklikleri toplamı, dolabın iç yüksekliğini tam <b>' + fark.toFixed(0) + ' mm aşıyor!</b>', 'error');
         }
