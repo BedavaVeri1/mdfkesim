@@ -198,7 +198,7 @@ function update3DModel() {
                     doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                     stackQty: isNaN(rawStack) ? 0 : rawStack,
                     drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
-                    drawerStart: col.querySelector('.col-drawer-start') ? (parseInt(col.querySelector('.col-drawer-start').value) || 1) : 1,
+                    drawerStart: col.querySelector('.col-drawer-start') ? col.querySelector('.col-drawer-start').value : "1",
                     gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
                     customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
                     customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
@@ -609,7 +609,15 @@ function update3DModel() {
                     
                     // Çekmece kontrolü
                     const bottomIndex = col.stackQty - stack;
-                    const isDrawer = bottomIndex >= (col.drawerStart || 1) && bottomIndex < (col.drawerStart || 1) + col.drawerQty;
+                    let isDrawer = false;
+                    const startStr = String(col.drawerStart || "1");
+                    const positions = startStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+                    if (startStr.includes(',') || positions.length > 1) {
+                        isDrawer = positions.includes(bottomIndex);
+                    } else {
+                        const start = positions[0] || 1;
+                        isDrawer = bottomIndex >= start && bottomIndex < start + col.drawerQty;
+                    }
                     
                     for (let dIdx = 0; dIdx < col.doorQty; dIdx++) {
                         let doorW = doorWidths[dIdx];

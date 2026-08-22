@@ -1520,7 +1520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                         stackQty: isNaN(rawStack) ? 0 : rawStack,
                         drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
-                        drawerStart: col.querySelector('.col-drawer-start') ? (parseInt(col.querySelector('.col-drawer-start').value) || 1) : 1,
+                        drawerStart: col.querySelector('.col-drawer-start') ? col.querySelector('.col-drawer-start').value : "1",
                         gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
                         customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
                         customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
@@ -1588,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         cCard.querySelector('.col-door-qty').value = colData.doorQty || 0;
                                         cCard.querySelector('.col-stack-qty').value = colData.stackQty || 0;
                                         if (cCard.querySelector('.col-drawer-qty')) cCard.querySelector('.col-drawer-qty').value = colData.drawerQty || 0;
-                                        if (cCard.querySelector('.col-drawer-start')) cCard.querySelector('.col-drawer-start').value = colData.drawerStart || 1;
+                                        if (cCard.querySelector('.col-drawer-start')) cCard.querySelector('.col-drawer-start').value = colData.drawerStart || "1";
                                         if (cCard.querySelector('.col-gap')) cCard.querySelector('.col-gap').value = colData.gap || 20;
                                         if (cCard.querySelector('.col-custom-w')) cCard.querySelector('.col-custom-w').value = colData.customW || "";
                                         if (cCard.querySelector('.col-custom-drawers')) cCard.querySelector('.col-custom-drawers').value = colData.customDrawers || "";
@@ -1788,7 +1788,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="input-group-col">
                                 <label title="Çekmecenin aşağıdan yukarıya kaçıncı sıradan başlayacağı">Çek. Konum</label>
-                                <input type="number" class="col-drawer-start" value="1" min="1">
+                                <input type="text" class="col-drawer-start" value="1" title="Araya virgül koyarak yaz (Örn: 1,3)">
                             </div>
                         </div>
                         
@@ -2307,7 +2307,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         // stack = 0 en üst, stack = col.stackQty - 1 en alt
                         // Çekmeceler alttan yukarıya doğru sayılır
                         const bottomIndex = col.stackQty - stack;
-                        const isDrawer = bottomIndex >= col.drawerStart && bottomIndex < col.drawerStart + col.drawerQty;
+                        let isDrawer = false;
+                        const startStr = String(col.drawerStart || "1");
+                        const positions = startStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+                        if (startStr.includes(',') || positions.length > 1) {
+                            isDrawer = positions.includes(bottomIndex);
+                        } else {
+                            const start = positions[0] || 1;
+                            isDrawer = bottomIndex >= start && bottomIndex < start + col.drawerQty;
+                        }
                         
                         for (let wStr in wCounts) {
                             let dw = parseFloat(wStr);
