@@ -1520,6 +1520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                         stackQty: isNaN(rawStack) ? 0 : rawStack,
                         drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
+                        drawerStart: col.querySelector('.col-drawer-start') ? (parseInt(col.querySelector('.col-drawer-start').value) || 1) : 1,
                         gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
                         customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
                         customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
@@ -1587,6 +1588,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         cCard.querySelector('.col-door-qty').value = colData.doorQty || 0;
                                         cCard.querySelector('.col-stack-qty').value = colData.stackQty || 0;
                                         if (cCard.querySelector('.col-drawer-qty')) cCard.querySelector('.col-drawer-qty').value = colData.drawerQty || 0;
+                                        if (cCard.querySelector('.col-drawer-start')) cCard.querySelector('.col-drawer-start').value = colData.drawerStart || 1;
                                         if (cCard.querySelector('.col-gap')) cCard.querySelector('.col-gap').value = colData.gap || 20;
                                         if (cCard.querySelector('.col-custom-w')) cCard.querySelector('.col-custom-w').value = colData.customW || "";
                                         if (cCard.querySelector('.col-custom-drawers')) cCard.querySelector('.col-custom-drawers').value = colData.customDrawers || "";
@@ -2300,7 +2302,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         // stack = 0 en üst, stack = col.stackQty - 1 en alt
                         // Çekmeceler alttan yukarıya doğru sayılır
-                        const isDrawer = (col.stackQty - stack) <= col.drawerQty;
+                        const bottomIndex = col.stackQty - stack;
+                        const isDrawer = bottomIndex >= col.drawerStart && bottomIndex < col.drawerStart + col.drawerQty;
                         
                         for (let wStr in wCounts) {
                             let dw = parseFloat(wStr);
