@@ -1786,6 +1786,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <label title="Alttan üste kaç tanesi çekmece olacak?">Çekmece Sayısı</label>
                                 <input type="number" class="col-drawer-qty" value="0">
                             </div>
+                            <div class="input-group-col">
+                                <label title="Çekmecenin aşağıdan yukarıya kaçıncı sıradan başlayacağı">Çek. Konum</label>
+                                <input type="number" class="col-drawer-start" value="1" min="1">
+                            </div>
                         </div>
                         
                         <!-- Gelişmiş Ayarlar Butonu -->
