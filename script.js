@@ -488,6 +488,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if (typeof window.renderWizardTabs === 'function') window.renderWizardTabs();
                     
+                    // Otomatik parça oluşturma (eğer liste boşsa ve sihirbaz verisi varsa)
+                    if ((!project.parts || project.parts.length === 0) && (project.wizardProjects && project.wizardProjects.length > 0 || project.moduleWizard)) {
+                        if (typeof generateModuleParts === 'function') {
+                            generateModuleParts();
+                        }
+                    }
+                    
                     showToast('Proje dosyası başarıyla yüklendi!', 'success');
                 } catch (err) {
                     console.error(err);
