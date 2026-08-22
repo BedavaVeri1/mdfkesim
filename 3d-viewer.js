@@ -177,7 +177,8 @@ function update3DModel() {
     const tempOverallH = parseFloat(document.getElementById('mod-h').value) || 0;
     const tempBaseH = parseFloat(document.getElementById('mod-base-h')?.value) || 0;
     const tempThick = 18;
-    const tempInnerH = tempOverallH - tempBaseH - (2 * tempThick);
+    const tempSideH = tempOverallH - tempBaseH;
+    const tempInnerH = tempSideH - (2 * tempThick);
     
     let totalSecH = 0;
     document.querySelectorAll('.section-card').forEach(card => {
