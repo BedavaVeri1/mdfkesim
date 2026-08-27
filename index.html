@@ -185,14 +185,14 @@
     <!-- HAZIR MODÜL SİHİRBAZI MODALI (Bağımsız Tam Ekran) -->
     <div id="module-wizard-modal" class="modal">
         <div class="modal-content modal-content-large">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light);">
-                <div style="display: flex; align-items: center; gap: 20px;">
-                    <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary);">Hazır Modül Sihirbazı</h2>
-                    <div id="wizard-tabs-container" style="display: flex; gap: 5px; overflow-x: auto; max-width: 600px;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light);">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px; flex: 1; min-width: 250px;">
+                    <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary); white-space: nowrap;">Modül Sihirbazı</h2>
+                    <div id="wizard-tabs-container" style="display: flex; gap: 5px; overflow-x: auto; flex-grow: 1;">
                         <!-- Sekmeler JS ile buraya basılacak -->
                     </div>
                 </div>
-                <button id="close-wizard" class="btn btn-primary" style="margin: 0; width: auto; padding: 8px 16px;"><i class="fas fa-arrow-left"></i> Ana Ekrana Dön</button>
+                <button id="close-wizard" class="btn btn-primary" style="margin: 0; width: auto; padding: 8px 16px; white-space: nowrap;"><i class="fas fa-arrow-left"></i> Ana Ekrana Dön</button>
             </div>
             
             <div class="modal-layout">
@@ -209,7 +209,7 @@
                         <button id="mode-btn-vertical" class="btn-secondary" style="flex: 1; margin: 0; font-size: 0.85rem; padding: 8px; border: none; background: transparent; color: var(--dark);"><i class="fas fa-columns"></i> Modüler (Yan Yana)</button>
                     </div>
                     
-                    <div class="modal-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="modal-grid responsive-grid-3" style="grid-template-columns: 1fr 1fr 1fr;">
                         <div class="input-group-col">
                             <label>MDF Kalınlığı (mm)</label>
                             <input type="number" id="mod-thick" value="18">
@@ -227,7 +227,7 @@
                         </div>
                     </div>
 
-                    <div class="modal-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="modal-grid responsive-grid-3" style="grid-template-columns: 1fr 1fr 1fr;">
                         <div class="input-group-col">
                             <label>Genişlik (mm)</label>
                             <input type="number" id="mod-w" placeholder="Örn: 600" value="600">

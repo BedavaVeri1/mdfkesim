@@ -1123,3 +1123,14 @@ input[type="number"] {
     30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
     40%, 60% { transform: translate3d(6px, 0, 0); }
 }
+
+@media (max-width: 768px) {
+    .responsive-grid-3 {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+@media (max-width: 400px) {
+    .responsive-grid-3 {
+        grid-template-columns: 1fr !important;
+    }
+}
