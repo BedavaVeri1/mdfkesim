@@ -186,7 +186,7 @@ function update3DModel() {
         totalSecH += parseFloat(card.querySelector('.sec-h').value) || 0;
     });
     
-    if (window.moduleWizardMode !== 'vertical' && totalSecH > tempSideH + 5) {
+    if (window.moduleWizardMode !== 'vertical' && totalSecH > tempSideH + 0.1) {
         const fark = totalSecH - tempSideH;
         if (typeof showToast === 'function') {
             showToast('DİKKAT: Bölüm yükseklikleri toplamı, dolabın gövde yüksekliğini tam <b>' + fark.toFixed(0) + ' mm aşıyor!</b>', 'error');
@@ -755,7 +755,7 @@ function update3DModel() {
         // --- Bölüm Üst Tablası (veya Sabit Ara Raf) ---
         const topY = currentOuterY + sec.h - (thick / 2);
         const anaTavanY = baseH + sideH - (thick / 2);
-        if (topY < anaTavanY - 2) {
+        if (topY < anaTavanY - 0.1) {
             cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
         }
         

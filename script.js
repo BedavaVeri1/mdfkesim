@@ -2105,7 +2105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let cumulativeH = 0;
         sections.forEach(sec => {
             cumulativeH += sec.h || 0;
-            if (cumulativeH < sideH - 5) {
+            if (cumulativeH < sideH - 0.1) {
                 sabitRafCount++;
             }
         });
