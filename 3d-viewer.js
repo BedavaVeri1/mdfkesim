@@ -347,6 +347,20 @@ function update3DModel() {
                 cabinetGroup.add(createPanel(thick, innerH, d, dikmeX, dikmeY, 0));
             }
             
+            if (col.railQty > 0) {
+                for (let r = 0; r < col.railQty; r++) {
+                    let rY = baseH + thick + innerH - 80 - (r * (innerH/2));
+                    let rX = currentModX + (modW / 2);
+                    let rZ = 0;
+                    const geometry = new THREE.CylinderGeometry(12, 12, modW - 2, 32);
+                    const material = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8, roughness: 0.2 });
+                    const cylinder = new THREE.Mesh(geometry, material);
+                    cylinder.rotation.z = Math.PI / 2;
+                    cylinder.position.set(rX, rY, rZ);
+                    cabinetGroup.add(cylinder);
+                }
+            }
+            
             if (col.shelfQty > 0) {
                 let customShelves = [];
                 if (col.customShelves && col.customShelves.trim() !== "") {
@@ -566,6 +580,20 @@ function update3DModel() {
                         doorBoundaries.push(currentY + 2); 
                         currentY += 4;
                     }
+                }
+            }
+            
+            if (col.railQty > 0) {
+                for (let r = 0; r < col.railQty; r++) {
+                    let rY = currentOuterY + sec.h - 80 - (r * (sec.h / 2));
+                    let rX = currentColX + (colW / 2);
+                    let rZ = 0;
+                    const geometry = new THREE.CylinderGeometry(12, 12, colW - 2, 32);
+                    const material = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8, roughness: 0.2 });
+                    const cylinder = new THREE.Mesh(geometry, material);
+                    cylinder.rotation.z = Math.PI / 2;
+                    cylinder.position.set(rX, rY, rZ);
+                    cabinetGroup.add(cylinder);
                 }
             }
             
