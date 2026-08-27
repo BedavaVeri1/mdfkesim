@@ -2176,7 +2176,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const addCrownTemp = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
                 if (addCrownTemp) {
                     topGap = 4;
-                    sectionDoorTotalH -= 4;
+                    // sectionDoorTotalH'den düşmüyoruz, çünkü aşağıda 'usableH' hesaplanırken 'topGap' zaten düşülüyor!
                 }
             }
 

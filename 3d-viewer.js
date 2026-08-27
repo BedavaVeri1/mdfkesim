@@ -478,7 +478,6 @@ function update3DModel() {
             const addCrownTemp = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
             if (addCrownTemp) {
                 topGap = 4;
-                sectionDoorTotalH -= 4;
             }
         }
 
