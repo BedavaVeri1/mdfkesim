@@ -217,6 +217,7 @@ function update3DModel() {
                     shelfQty: isNaN(rawShelf) ? 0 : rawShelf,
                     doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                     stackQty: isNaN(rawStack) ? 0 : rawStack,
+                    railQty: col.querySelector('.col-rail-qty') ? (parseInt(col.querySelector('.col-rail-qty').value) || 0) : 0,
                     drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
                     drawerStart: col.querySelector('.col-drawer-start') ? col.querySelector('.col-drawer-start').value : "1",
                     gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
