@@ -1722,6 +1722,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const sectionId = sectionCount;
         
         const isVert = window.moduleWizardMode === 'vertical';
+        
+        // --- OTOMATİK KALAN BOŞLUK HESAPLAMA ---
+        let suggestedValue = '';
+        if (isVert) {
+            const tempOverallW = parseFloat(document.getElementById('mod-w')?.value) || 0;
+            const tempThick = parseFloat(document.getElementById('mod-thick')?.value) || 18;
+            let tempInnerW = tempOverallW - (2 * tempThick);
+            
+            let totalSecW = 0;
+            document.querySelectorAll('.section-card').forEach(card => {
+                totalSecW += parseFloat(card.querySelector('.sec-h').value) || 0;
+            });
+            
+            let dividerCount = sectionCount > 1 ? (sectionCount - 1) : 0;
+            let usedW = totalSecW + (dividerCount * tempThick);
+            let remaining = tempInnerW - usedW;
+            
+            if (remaining > 0) {
+                suggestedValue = Math.round(remaining).toString();
+            }
+        } else {
+            const tempOverallH = parseFloat(document.getElementById('mod-h')?.value) || 0;
+            const tempBaseH = parseFloat(document.getElementById('mod-base-h')?.value) || 0;
+            const tempThick = parseFloat(document.getElementById('mod-thick')?.value) || 18;
+            const crownCheck = document.getElementById('mod-add-crown');
+            const addCrownTemp = crownCheck ? crownCheck.checked : true;
+            
+            let tempSideH = addCrownTemp ? (tempOverallH - tempBaseH - tempThick) : (tempOverallH - tempBaseH);
+            let totalSecH = 0;
+            document.querySelectorAll('.section-card').forEach(card => {
+                totalSecH += parseFloat(card.querySelector('.sec-h').value) || 0;
+            });
+            
+            let remaining = tempSideH - totalSecH;
+            if (remaining > 0) {
+                suggestedValue = Math.round(remaining).toString();
+            } else if (totalSecH === 0) {
+                suggestedValue = Math.round(tempSideH).toString(); // İlk bölümse tam boyu öner
+            }
+        }
+        // ---------------------------------------
+        
         const labelName = isVert ? 'Modül' : 'Bölüm';
         const input1Label = isVert ? 'Modül İç Genişliği (mm)' : 'Bölüm Yüksekliği (mm)';
         
@@ -1748,7 +1790,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
                         <div class="input-group-col">
                             <label>${input1Label}</label>
-                            <input type="number" class="sec-h" value="${isVert ? '' : '400'}" placeholder="${isVert ? 'Otomatik' : ''}">
+                            <input type="number" class="sec-h" value="${suggestedValue}" placeholder="Otomatik (Kalan)">
                         </div>
                         ${colHtml}
                     </div>
