@@ -767,7 +767,7 @@ function update3DModel() {
     // --- TAÇ (ÜST ÇIKINTI) ---
     const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
     if (addCrown) {
-        const sideH = overallH - baseH;
+        // Taç karkasın tam üstüne binmeli. Karkasın en üst noktası: baseH + sideH (buradaki sideH yukarıda 18mm düşülmüş hali)
         const crownY = baseH + sideH + (thick / 2);
         // Taç ön tarafa doğru 25mm taşacak. 
         // Derinlik d+25. Arka yüzü dolap arkasıyla sıfır (z = -d/2). 
