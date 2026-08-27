@@ -177,7 +177,8 @@ function update3DModel() {
     const tempOverallH = parseFloat(document.getElementById('mod-h').value) || 0;
     const tempBaseH = parseFloat(document.getElementById('mod-base-h')?.value) || 0;
     const tempThick = 18;
-    const tempSideH = tempOverallH - tempBaseH;
+    const addCrownTemp = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
+    const tempSideH = addCrownTemp ? (tempOverallH - tempBaseH - tempThick) : (tempOverallH - tempBaseH);
     const tempInnerH = tempSideH - (2 * tempThick);
     
     let totalSecH = 0;
@@ -232,12 +233,15 @@ function update3DModel() {
     if (w <= 0 || overallH <= 0 || d <= 0 || sections.length === 0) return;
 
     const baseType = document.getElementById('mod-base-type') ? document.getElementById('mod-base-type').value : 'normal';
+    const isCrownAdded = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
     
     let sideH = overallH - baseH;
+    if (isCrownAdded) sideH -= thick;
     let sideY = baseH + (sideH / 2);
     
     if (baseType === 'closed') {
         sideH = overallH - 7;
+        if (isCrownAdded) sideH -= thick;
         sideY = 7 + (sideH / 2);
     }
 
@@ -470,7 +474,13 @@ function update3DModel() {
             } else {
                 topGap = 0;
             }
-        } // ADDED MISSING BRACE
+        } else {
+            const addCrownTemp = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
+            if (addCrownTemp) {
+                topGap = 4;
+                sectionDoorTotalH -= 4;
+            }
+        }
 
 
         sec.columns.forEach((col, cIdx) => {

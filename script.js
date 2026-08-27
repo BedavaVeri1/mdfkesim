@@ -1983,11 +1983,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const internalW = w - (2 * thick);
         let sideH;
+        const isCrownAdded = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
         
         if (baseType === 'closed') {
             sideH = overallH - 7; // 7mm takoz payı
         } else {
             sideH = overallH - baseH;
+        }
+        
+        if (isCrownAdded) {
+            sideH -= thick; // Taç kalınlığı kadar gövdeden düşüyoruz ki toplam boy aynı kalsın
         }
 
         // --- YAN YANA (DİKEY) MOD MANTIĞI ---
@@ -2167,7 +2172,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     topGap = 0;
                 }
-            } // ADDED MISSING BRACE
+            } else {
+                const addCrownTemp = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
+                if (addCrownTemp) {
+                    topGap = 4;
+                    sectionDoorTotalH -= 4;
+                }
+            }
 
 
             sec.columns.forEach((col, cIdx) => {
