@@ -315,7 +315,7 @@ function update3DModel() {
     let currentOuterY = baseH; 
     
     // HER ZAMAN EN ÜST TABLAYI ÇİZ (Kutu her zaman kapalı olmalı)
-    const topY = baseH + sideH - (thick / 2);
+    let sidePanelBottom = (baseType === "closed") ? 7 : baseH;\n    const topY = sidePanelBottom + sideH - (thick / 2);
     cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
     
     if (window.moduleWizardMode === 'vertical') {
@@ -783,7 +783,7 @@ function update3DModel() {
         
         // --- Bölüm Üst Tablası (veya Sabit Ara Raf) ---
         const topY = currentOuterY + sec.h - (thick / 2);
-        const anaTavanY = baseH + sideH - (thick / 2);
+        let sidePanelBottomAna = (baseType === "closed") ? 7 : baseH;\n        const anaTavanY = sidePanelBottomAna + sideH - (thick / 2);
         if (topY < anaTavanY - 0.1) {
             cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
         }
@@ -796,7 +796,7 @@ function update3DModel() {
     const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
     if (addCrown) {
         // Taç karkasın tam üstüne binmeli. Karkasın en üst noktası: baseH + sideH (buradaki sideH yukarıda 18mm düşülmüş hali)
-        const crownY = baseH + sideH + (thick / 2);
+        let sidePanelBottomCrown = (baseType === "closed") ? 7 : baseH;\n        const crownY = sidePanelBottomCrown + sideH + (thick / 2);
         // Taç ön tarafa doğru 25mm taşacak. 
         // Derinlik d+25. Arka yüzü dolap arkasıyla sıfır (z = -d/2). 
         // Dolayısıyla Z merkezi = -d/2 + (d+25)/2 = 12.5 olur.
