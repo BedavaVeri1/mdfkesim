@@ -375,6 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 doorQty: isNaN(rawDoor) ? 0 : rawDoor,
                                 stackQty: isNaN(rawStack) ? 0 : rawStack,
                                 drawerQty: isNaN(rawDrawer) ? 0 : rawDrawer,
+                                railQty: col.querySelector('.col-rail-qty') ? (parseInt(col.querySelector('.col-rail-qty').value) || 0) : 0,
                                 doorShelfDist: doorShelfDist,
                                 doorWDist: doorWDist,
                                 gap: parseFloat(col.querySelector('.col-gap').value) || 20,
@@ -1597,6 +1598,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         cCard.querySelector('.col-door-qty').value = colData.doorQty || 0;
                                         cCard.querySelector('.col-stack-qty').value = colData.stackQty || 0;
                                         if (cCard.querySelector('.col-drawer-qty')) cCard.querySelector('.col-drawer-qty').value = colData.drawerQty || 0;
+                                        if (cCard.querySelector('.col-rail-qty')) cCard.querySelector('.col-rail-qty').value = colData.railQty || 0;
                                         if (cCard.querySelector('.col-drawer-start')) cCard.querySelector('.col-drawer-start').value = colData.drawerStart || "1";
                                         if (cCard.querySelector('.col-gap')) cCard.querySelector('.col-gap').value = colData.gap || 20;
                                         if (cCard.querySelector('.col-custom-w')) cCard.querySelector('.col-custom-w').value = colData.customW || "";
