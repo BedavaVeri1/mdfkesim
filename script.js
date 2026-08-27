@@ -2439,6 +2439,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.saveCurrentProjectToState === 'function') window.saveCurrentProjectToState();
         const originalActiveId = window.activeProjectId;
         
+        document.querySelectorAll('.part-row').forEach(row => {
+            const n = row.querySelector('.p-name');
+            const w = row.querySelector('.p-w');
+            const h = row.querySelector('.p-h');
+            if (n && w && h && !n.value.trim() && !w.value.trim() && !h.value.trim()) {
+                row.remove();
+            }
+        });
+        
         let successCount = 0;
         const initialListLength = document.querySelectorAll('.part-row').length;
         
