@@ -2176,9 +2176,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 3. Bölüm Arası Sabit Raflar (Tavana değiyorsa kesilmez)
+        let cumulativeH = 0;
         let sabitRafCount = 0;
-        let cumulativeH = 0;
-        let cumulativeH = 0;
         sections.forEach((sec, idx) => {
             cumulativeH += sec.h || 0;
             if (cumulativeH < sideH - 0.1) {
