@@ -526,6 +526,7 @@ function update3DModel() {
             // 1. RAFLARIN MERKEZ KOORDİNATLARINI HESAPLA
             
                 // Yere Basan Sütun (Mini Alt Tabla ve Dikme Uzantısı)
+                const cX = currentColX + (colW / 2);
                 if (noBottomBoard && (col.baseType === 'yere_basan_ayak' || col.baseType === 'yere_basan_baza')) {
                     if (index === 0) { // Sadece en alt katsa yere değer
                         // Zemin tablası
