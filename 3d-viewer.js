@@ -588,7 +588,17 @@ function update3DModel() {
             
             let doorTotalH = sectionDoorTotalH;
             const innerGapsH = (col.stackQty - 1) * 4;
-            const usableH = doorTotalH - bottomGap - topGap - innerGapsH;
+            
+            // Sütun ayağı (baseH) varsa kapak/çekmece alanını daralt
+            let colDoorTotalH = doorTotalH;
+            let colSectionDoorAreaStart = sectionDoorAreaStart;
+            if (noBottomBoard && index === 0 && (col.baseType === 'yere_basan_ayak' || col.baseType === 'yere_basan_baza')) {
+                let cbh = parseFloat(col.baseH) || 0;
+                colDoorTotalH -= cbh;
+                colSectionDoorAreaStart += cbh;
+            }
+            const usableH = colDoorTotalH - bottomGap - topGap - innerGapsH;
+
             const defaultDoorH = usableH / col.stackQty;
 
             if (col.doorQty > 0 && col.stackQty > 0) {
