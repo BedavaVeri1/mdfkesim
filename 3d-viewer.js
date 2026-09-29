@@ -199,6 +199,7 @@ function update3DModel() {
     }
 
     const w = parseFloat(document.getElementById('mod-w')?.value) || 0;
+    const noBottomBoard = document.getElementById("mod-no-bottom") ? document.getElementById("mod-no-bottom").checked : false;
     const overallH = parseFloat(document.getElementById('mod-h')?.value) || 0;
     const d = parseFloat(document.getElementById('mod-d')?.value) || 0;
     const thick = parseFloat(document.getElementById('mod-thick')?.value) || 18;
@@ -852,8 +853,6 @@ function update3DModel() {
 
     // --- TAÇ (ÜST ÇIKINTI) ---
     const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
-    const noBottomBoard = document.getElementById('mod-no-bottom') ? document.getElementById('mod-no-bottom').checked : false;
-    const noBottomBoard = document.getElementById('mod-no-bottom') ? document.getElementById('mod-no-bottom').checked : false;
     if (addCrown) {
         // Taç karkasın tam üstüne binmeli. Karkasın en üst noktası: baseH + sideH (buradaki sideH yukarıda 18mm düşülmüş hali)
         let sidePanelBottomCrown = (baseType === "closed") ? 7 : baseH;
