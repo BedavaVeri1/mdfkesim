@@ -452,8 +452,8 @@ function update3DModel() {
         let currentInnerY;
         
         if (index === 0) {
-            netH = sec.h - (2 * thick);
-            currentInnerY = currentOuterY + thick; 
+            netH = noBottomBoard ? sec.h - thick : sec.h - (2 * thick);
+            currentInnerY = noBottomBoard ? currentOuterY : currentOuterY + thick; 
         } else {
             netH = sec.h - thick;
             currentInnerY = currentOuterY; 
