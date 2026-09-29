@@ -849,9 +849,14 @@ function update3DModel() {
                 if (noBottomBoard && index === 0) {
                     let leftCol = sec.columns[cIdx];
                     let rightCol = sec.columns[cIdx + 1];
-                    let leftGap = (leftCol && (leftCol.baseType === 'yere_basan_ayak' || leftCol.baseType === 'yere_basan_baza')) ? (parseFloat(leftCol.baseH) || 0) : 0;
-                    let rightGap = (rightCol && (rightCol.baseType === 'yere_basan_ayak' || rightCol.baseType === 'yere_basan_baza')) ? (parseFloat(rightCol.baseH) || 0) : 0;
-                    let minGap = Math.max(leftGap, rightGap); // Asma (0) olan tarafı yoksay, ayağı olan tarafa (100) uydur.
+                    let leftGap = (leftCol && leftCol.baseType === 'yere_basan_ayak') ? (parseFloat(leftCol.baseH) || 0) : 0;
+                    let rightGap = (rightCol && rightCol.baseType === 'yere_basan_ayak') ? (parseFloat(rightCol.baseH) || 0) : 0;
+                    // Eğer sağ veya sol sütundan biri kapalı baza ise, dikme kesinlikle yere inmelidir (gap = 0)!
+                    if ((leftCol && leftCol.baseType === 'yere_basan_baza') || (rightCol && rightCol.baseType === 'yere_basan_baza')) {
+                        leftGap = 0;
+                        rightGap = 0;
+                    }
+                    let minGap = Math.max(leftGap, rightGap); // Asma veya Baza durumunda dikme yere iner.
                     
                     dividerH = sec.h - thick - minGap;
                     dividerY = currentOuterY + minGap + (dividerH / 2);
