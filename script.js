@@ -1552,6 +1552,7 @@ document.addEventListener('DOMContentLoaded', () => {
             baseType: document.getElementById('mod-base-type').value,
             baseH: document.getElementById('mod-base-h').value,
             noBottomBoard: document.getElementById('mod-no-bottom') ? document.getElementById('mod-no-bottom').checked : false,
+            splitSides: document.getElementById('mod-split-sides') ? document.getElementById('mod-split-sides').checked : false,
             addCrown: document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true,
             sections: sectionsData
         };
@@ -1576,6 +1577,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('mod-base-type').value = proj.data.baseType || 'normal';
             document.getElementById('mod-base-h').value = proj.data.baseH || 0;
             if (document.getElementById('mod-no-bottom')) document.getElementById('mod-no-bottom').checked = proj.data.noBottomBoard || false;
+            if (document.getElementById('mod-split-sides')) document.getElementById('mod-split-sides').checked = proj.data.splitSides || false;
             if(document.getElementById('mod-add-crown')) document.getElementById('mod-add-crown').checked = proj.data.addCrown !== false;
             
             const container = document.getElementById('sections-container');
