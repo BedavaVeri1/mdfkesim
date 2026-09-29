@@ -223,6 +223,7 @@ function update3DModel() {
                     drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
                     drawerStart: col.querySelector('.col-drawer-start') ? col.querySelector('.col-drawer-start').value : "1",
                     baseType: col.querySelector('.col-base-type') ? col.querySelector('.col-base-type').value : "standart",
+                    baseH: col.querySelector('.col-base-h') ? parseFloat(col.querySelector('.col-base-h').value) || 0 : 0,
                     baseType: col.querySelector('.col-base-type') ? col.querySelector('.col-base-type').value : 'standart',
                     gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
                     customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
@@ -524,11 +525,39 @@ function update3DModel() {
             // 1. RAFLARIN MERKEZ KOORDİNATLARINI HESAPLA
             
                 // Yere Basan Sütun (Mini Alt Tabla ve Dikme Uzantısı)
-                if (noBottomBoard && col.baseType === 'yere_basan') {
+                if (noBottomBoard && (col.baseType === 'yere_basan_ayak' || col.baseType === 'yere_basan_baza')) {
                     if (index === 0) { // Sadece en alt katsa yere değer
                         // Zemin tablası
-                        const mBaseY = baseH + (thick / 2);
+                        const colBaseH = col.baseH || 0;
+                        const mBaseY = colBaseH + (thick / 2);
                         cabinetGroup.add(createPanel(colW, thick, secD, cX, mBaseY, -zOffset));
+                        // Ayak Görselleri
+                        if (col.baseType === 'yere_basan_ayak' && colBaseH > 0) {
+                            const legMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+                            const legGeo = new THREE.BoxGeometry(40, colBaseH, 40);
+                            const legY = colBaseH / 2;
+                            const xLeft = cX - (colW/2) + 20;
+                            const xRight = cX + (colW/2) - 20;
+                            const zFront = -zOffset + (secD/2) - 30;
+                            const zBack = -zOffset - (secD/2) + 30;
+                            
+                            const legPos = [
+                                [xLeft, legY, zBack], [xRight, legY, zBack],
+                                [xLeft, legY, zFront], [xRight, legY, zFront]
+                            ];
+                            legPos.forEach(pos => {
+                                const m = new THREE.Mesh(legGeo, legMat);
+                                m.position.set(...pos);
+                                cabinetGroup.add(m);
+                            });
+                        } else if (col.baseType === 'yere_basan_baza' && colBaseH > 0) {
+                            // Ön Baza Kapağı (Ahşap)
+                            const plinthH = colBaseH - 7; // Takoz payı
+                            const plinthY = 7 + (plinthH / 2);
+                            const plinthZ = -zOffset + (secD / 2) - 20 - (thick / 2);
+                            cabinetGroup.add(createPanel(colW, plinthH, thick, cX, plinthY, plinthZ));
+                        }
+
                     }
                 }
 

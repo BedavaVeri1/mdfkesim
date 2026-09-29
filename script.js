@@ -1860,14 +1860,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <input type="text" class="col-drawer-start" value="1" title="Araya virgül koyarak yaz (Örn: 1,3)">
                             </div>
                         </div>
-                        <div class="modal-grid" style="grid-template-columns: 1fr; margin-top: 5px;">
+                        <div class="modal-grid" style="grid-template-columns: 1fr 1fr; margin-top: 5px;">
                             <div class="input-group-col">
                                 <label>Zemin Tipi (Masa Modu)</label>
                                 <select class="col-base-type">
                                     <option value="standart">Standart (Değişiklik Yok)</option>
                                     <option value="asma">Asma (Zemine inmez, boş)</option>
-                                    <option value="yere_basan">Yere Basan (Özel ayaklı/bazalı)</option>
+                                    <option value="yere_basan_ayak">Yere Basan (Normal Ayaklı)</option>
+                                            <option value="yere_basan_baza">Yere Basan (Kapalı Bazalı)</option>
                                 </select>
+                            </div>
+                            <div class="input-group-col">
+                                <label title="Sadece Yere Basan seçili ise geçerlidir">Ayak/Baza Yük. (mm)</label>
+                                <input type="number" class="col-base-h" value="" placeholder="Örn: 100">
                             </div>
                         </div>
                         
