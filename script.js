@@ -2553,4 +2553,4 @@ function downloadExcelTemplate() {
     if (window.showCustomAlert) {
         window.showCustomAlert('Örnek Excel şablonu indirildi!', 'success');
     }
-}
+}// Vercel Test Push - 1.03
