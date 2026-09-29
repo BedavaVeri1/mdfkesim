@@ -208,6 +208,8 @@ function update3DModel() {
         const rawCols = parseInt(card.querySelector('.sec-cols-count').value);
         return {
             h: parseFloat(card.querySelector('.sec-h').value) || 0,
+            customD: card.querySelector('.sec-custom-d') ? card.querySelector('.sec-custom-d').value : "",
+            customD: card.querySelector('.sec-custom-d') ? card.querySelector('.sec-custom-d').value : "",
             colsCount: isNaN(rawCols) || rawCols < 1 ? 1 : rawCols,
             columns: Array.from(card.querySelectorAll('.column-card')).map(col => {
                 const rawShelf = parseInt(col.querySelector('.col-shelf-qty').value);
@@ -220,6 +222,8 @@ function update3DModel() {
                     railQty: col.querySelector('.col-rail-qty') ? (parseInt(col.querySelector('.col-rail-qty').value) || 0) : 0,
                     drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
                     drawerStart: col.querySelector('.col-drawer-start') ? col.querySelector('.col-drawer-start').value : "1",
+                    baseType: col.querySelector('.col-base-type') ? col.querySelector('.col-base-type').value : "standart",
+                    baseType: col.querySelector('.col-base-type') ? col.querySelector('.col-base-type').value : 'standart',
                     gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
                     customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
                     customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
@@ -308,8 +312,10 @@ function update3DModel() {
     cabinetGroup.add(createPanel(thick, sideH, d, rightSideX, sideY, sideZ));
 
     // --- 2. ALT TABLA ---
+    if (!noBottomBoard) {
     const bottomY = baseH + (thick / 2);
     cabinetGroup.add(createPanel(innerW, thick, d, 0, bottomY, 0));
+    }
 
     // --- 3. BÖLÜMLERİ İNŞA ET ---
     let currentOuterY = baseH; 
@@ -436,6 +442,9 @@ function update3DModel() {
         });
     } else {
         sections.forEach((sec, index) => {
+            let secD = parseFloat(sec.customD) || d;
+            const zOffset = (d - secD) / 2; // Arka sıfır hizası için Z kayması
+
 
         let netH;
         let currentInnerY;
@@ -513,7 +522,17 @@ function update3DModel() {
             }
             
             // 1. RAFLARIN MERKEZ KOORDİNATLARINI HESAPLA
-            let customShelves = [];
+            
+                // Yere Basan Sütun (Mini Alt Tabla ve Dikme Uzantısı)
+                if (noBottomBoard && col.baseType === 'yere_basan') {
+                    if (index === 0) { // Sadece en alt katsa yere değer
+                        // Zemin tablası
+                        const mBaseY = baseH + (thick / 2);
+                        cabinetGroup.add(createPanel(colW, thick, secD, cX, mBaseY, -zOffset));
+                    }
+                }
+
+                let customShelves = [];
             if (col.customShelves.trim() !== "") {
                 customShelves = col.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
             }
@@ -784,7 +803,7 @@ function update3DModel() {
             if (cIdx < sec.colsCount - 1) {
                 const dikmeX = currentColX + (thick / 2);
                 const dikmeY = currentInnerY + (netH / 2);
-                cabinetGroup.add(createPanel(thick, netH, d, dikmeX, dikmeY, 0));
+                cabinetGroup.add(createPanel(thick, netH, secD, dikmeX, dikmeY, -zOffset));
                 
                 currentColX += thick; 
             }
@@ -795,7 +814,7 @@ function update3DModel() {
         let sidePanelBottomAna = (baseType === "closed") ? 7 : baseH;
         const anaTavanY = sidePanelBottomAna + sideH - (thick / 2);
         if (topY < anaTavanY - 0.1) {
-            cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
+            cabinetGroup.add(createPanel(innerW, thick, secD, 0, topY, -zOffset));
         }
         
         currentOuterY += sec.h;
@@ -804,6 +823,7 @@ function update3DModel() {
 
     // --- TAÇ (ÜST ÇIKINTI) ---
     const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
+    const noBottomBoard = document.getElementById('mod-no-bottom') ? document.getElementById('mod-no-bottom').checked : false;
     const noBottomBoard = document.getElementById('mod-no-bottom') ? document.getElementById('mod-no-bottom').checked : false;
     if (addCrown) {
         // Taç karkasın tam üstüne binmeli. Karkasın en üst noktası: baseH + sideH (buradaki sideH yukarıda 18mm düşülmüş hali)
