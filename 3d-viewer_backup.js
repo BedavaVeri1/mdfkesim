@@ -363,14 +363,6 @@ function update3DModel() {
             }
             
             if (col.shelfQty > 0) {
-                
-                if (noBottomBoard && colBaseType === 'yere_basan' && index === 0) {
-                    const miniBase = createPanel(colW, thick, secD);
-                    miniBase.position.set(currentX + colW / 2, baseH + thick / 2, -secD / 2);
-                    // Ana grup eklentisi
-                    group.add(miniBase);
-                }
-
                 let customShelves = [];
                 if (col.customShelves && col.customShelves.trim() !== "") {
                     customShelves = col.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
@@ -804,7 +796,6 @@ function update3DModel() {
 
     // --- TAÇ (ÜST ÇIKINTI) ---
     const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
-    const noBottomBoard = document.getElementById('mod-no-bottom') ? document.getElementById('mod-no-bottom').checked : false;
     if (addCrown) {
         // Taç karkasın tam üstüne binmeli. Karkasın en üst noktası: baseH + sideH (buradaki sideH yukarıda 18mm düşülmüş hali)
         let sidePanelBottomCrown = (baseType === "closed") ? 7 : baseH;

@@ -1519,7 +1519,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const rawCols = parseInt(card.querySelector('.sec-cols-count').value);
             return {
                 h: parseFloat(card.querySelector('.sec-h').value) || 0,
-                customD: card.querySelector('.sec-custom-d') ? card.querySelector('.sec-custom-d').value : "",
                 colsCount: isNaN(rawCols) || rawCols < 1 ? 1 : rawCols,
                 columns: Array.from(card.querySelectorAll('.column-card')).map(col => {
                     const rawShelf = parseInt(col.querySelector('.col-shelf-qty').value);
@@ -1532,7 +1531,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         railQty: col.querySelector('.col-rail-qty') ? (parseInt(col.querySelector('.col-rail-qty').value) || 0) : 0,
                         drawerQty: col.querySelector('.col-drawer-qty') ? (parseInt(col.querySelector('.col-drawer-qty').value) || 0) : 0,
                         drawerStart: col.querySelector('.col-drawer-start') ? col.querySelector('.col-drawer-start').value : "1",
-                        baseType: col.querySelector('.col-base-type') ? col.querySelector('.col-base-type').value : "standart",
                         gap: col.querySelector('.col-gap') ? parseFloat(col.querySelector('.col-gap').value) || 15 : 15,
                         customW: col.querySelector('.col-custom-w') ? col.querySelector('.col-custom-w').value : "",
                         customDrawers: col.querySelector('.col-custom-drawers') ? col.querySelector('.col-custom-drawers').value : "",
@@ -1551,7 +1549,6 @@ document.addEventListener('DOMContentLoaded', () => {
             thick: document.getElementById('mod-thick').value,
             baseType: document.getElementById('mod-base-type').value,
             baseH: document.getElementById('mod-base-h').value,
-            noBottomBoard: document.getElementById('mod-no-bottom') ? document.getElementById('mod-no-bottom').checked : false,
             addCrown: document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true,
             sections: sectionsData
         };
@@ -1575,7 +1572,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('mod-thick').value = proj.data.thick || 18;
             document.getElementById('mod-base-type').value = proj.data.baseType || 'normal';
             document.getElementById('mod-base-h').value = proj.data.baseH || 0;
-            if (document.getElementById('mod-no-bottom')) document.getElementById('mod-no-bottom').checked = proj.data.noBottomBoard || false;
             if(document.getElementById('mod-add-crown')) document.getElementById('mod-add-crown').checked = proj.data.addCrown !== false;
             
             const container = document.getElementById('sections-container');
@@ -1589,7 +1585,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const lastCard = container.lastElementChild;
                         if (lastCard) {
                             lastCard.querySelector('.sec-h').value = sec.h || '';
-                            if (lastCard.querySelector('.sec-custom-d')) lastCard.querySelector('.sec-custom-d').value = sec.customD || '';
                             const colInput = lastCard.querySelector('.sec-cols-count');
                             colInput.value = sec.colsCount || 1;
                             colInput.dispatchEvent(new Event('input')); // Sütunları DOM'a bas
@@ -1605,7 +1600,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                         if (cCard.querySelector('.col-drawer-qty')) cCard.querySelector('.col-drawer-qty').value = colData.drawerQty || 0;
                                         if (cCard.querySelector('.col-rail-qty')) cCard.querySelector('.col-rail-qty').value = colData.railQty || 0;
                                         if (cCard.querySelector('.col-drawer-start')) cCard.querySelector('.col-drawer-start').value = colData.drawerStart || "1";
-                                        if (cCard.querySelector('.col-base-type')) cCard.querySelector('.col-base-type').value = colData.baseType || "standart";
                                         if (cCard.querySelector('.col-gap')) cCard.querySelector('.col-gap').value = colData.gap || 20;
                                         if (cCard.querySelector('.col-custom-w')) cCard.querySelector('.col-custom-w').value = colData.customW || "";
                                         if (cCard.querySelector('.col-custom-drawers')) cCard.querySelector('.col-custom-drawers').value = colData.customDrawers || "";
@@ -1796,14 +1790,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn-remove-section" onclick="event.stopPropagation(); removeSection(${sectionId})"><i class="fas fa-trash"></i></button>
                 </div>
                 <div class="section-body" id="section-body-${sectionId}" style="padding: 5px;">
-                    <div class="modal-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="modal-grid" style="grid-template-columns: 1fr 1fr;">
                         <div class="input-group-col">
                             <label>${input1Label}</label>
                             <input type="number" class="sec-h" value="${suggestedValue}" placeholder="Otomatik (Kalan)">
-                        </div>
-                        <div class="input-group-col">
-                            <label>Özel Derinlik (Masa)</label>
-                            <input type="number" class="sec-custom-d" placeholder="Genel derinliği kullan">
                         </div>
                         ${colHtml}
                     </div>
@@ -1858,16 +1848,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="input-group-col">
                                 <label title="Çekmecenin aşağıdan yukarıya kaçıncı sıradan başlayacağı">Çek. Konum</label>
                                 <input type="text" class="col-drawer-start" value="1" title="Araya virgül koyarak yaz (Örn: 1,3)">
-                            </div>
-                        </div>
-                        <div class="modal-grid" style="grid-template-columns: 1fr; margin-top: 5px;">
-                            <div class="input-group-col">
-                                <label>Zemin Tipi (Masa Modu)</label>
-                                <select class="col-base-type">
-                                    <option value="standart">Standart (Değişiklik Yok)</option>
-                                    <option value="asma">Asma (Zemine inmez, boş)</option>
-                                    <option value="yere_basan">Yere Basan (Özel ayaklı/bazalı)</option>
-                                </select>
                             </div>
                         </div>
                         
@@ -2050,7 +2030,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const baseType = document.getElementById('mod-base-type') ? document.getElementById('mod-base-type').value : 'normal';
-        const noBottomBoard = document.getElementById('mod-no-bottom') ? document.getElementById('mod-no-bottom').checked : false;
         
         const initialListLength = document.querySelectorAll('.part-row').length;
 
@@ -2075,7 +2054,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
             
             addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
-        }
             addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
             
             if (baseType === 'closed' && baseH > 7) {
@@ -2120,7 +2098,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Çekmeceler
                 if (col.drawerQty > 0) {
                     const drawerW = modW - 50; // Kasa 50mm dar
-                    const drawerD = secD - 50;
+                    const drawerD = d - 50;
                     const drawerH = 150; // Standart çekmece kasa yüksekliği
                     
                     addPartRow({ name: `${index+1}. Modül Çekmece Klapası`, h: modW - 4, w: 185, q: col.drawerQty, rot: true, b: [true, true, true, true] });
@@ -2159,7 +2137,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
         
         // 1.5. Kapalı Baza Parçası
-        if (!noBottomBoard) {
         if (baseType === 'closed' && baseH > 7) {
             addPartRow({ name: "Ön Baza", h: baseH - 7, w: internalW, q: 1, rot: true, b: [false, true, false, false] });
         }
@@ -2178,18 +2155,18 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. Bölüm Arası Sabit Raflar (Tavana değiyorsa kesilmez)
         let sabitRafCount = 0;
         let cumulativeH = 0;
-        let cumulativeH = 0;
-        sections.forEach((sec, idx) => {
+        sections.forEach(sec => {
             cumulativeH += sec.h || 0;
             if (cumulativeH < sideH - 0.1) {
-                let secD = parseFloat(sec.customD) || d;
-                addPartRow({ name: `${idx+1}. Sabit Raf (Ara Bölücü)`, h: internalW, w: secD, q: 1, rot: true, b: [false, true, false, false] });
+                sabitRafCount++;
             }
         });
+        if (sabitRafCount > 0) {
+            addPartRow({ name: "Sabit Raf (Ara Bölücü)", h: internalW, w: d, q: sabitRafCount, rot: true, b: [false, true, false, false] });
+        }
 
         // 4. Raflar, Kapaklar ve Orta Dikmeler (Sütunlara Göre)
         sections.forEach((sec, index) => {
-            let secD = parseFloat(sec.customD) || d;
             // Bölüm Net İç Boşluğu
             let netH;
             if (index === 0) {
@@ -2201,7 +2178,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Sütunlar Arası Orta Dikmeler
             if (sec.colsCount > 1) {
                 const dikmeQty = sec.colsCount - 1;
-                addPartRow({ name: `${index+1}. Bölüm Orta Dikme`, h: netH, w: secD, q: dikmeQty, rot: true, b: [false, true, false, false] });
+                addPartRow({ name: `${index+1}. Bölüm Orta Dikme`, h: netH, w: d, q: dikmeQty, rot: true, b: [false, true, false, false] });
             }
 
             // Sütun Genişlikleri Hesaplama
@@ -2263,20 +2240,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 // 1. RAFLARIN MERKEZ KOORDİNATLARINI HESAPLA
-                
-                // Yere Basan Sütun Mantığı (Masa Modu)
-                if (noBottomBoard && col.baseType === 'yere_basan') {
-                    // Bu sütun yere basıyorsa, kendi yanlarına ekstra boy eklememiz gerekebilir veya mini alt tabla
-                    // Ancak halihazırda orta dikme "netH" olarak kesildi.
-                    // Yere basan orta dikme hesaplamak için, eğer bu en alt katman (index === 0) ise:
-                    if (index === 0) {
-                         // Aslında en alt katmansa ve yere basan seçiliyse, o sütunun altına bir mini tabla koyalım:
-                         addPartRow({ name: `${index+1}. Bölüm ${cIdx+1}. Sütun Mini Alt Tabla`, h: colW, w: secD, q: 1, rot: true, b: [false, true, false, false] });
-                         // Ve eğer ortadaysa (cIdx > 0), onun sol orta dikmesini yere kadar uzatabiliriz.
-                         // Ancak şimdilik sadece mini alt tabla koyalım, "Asma" durumunda ise mini alt tabla + çekmece olur, yere basmaz.
-                    }
-                }
-
                 let customShelves = [];
                 if (col.customShelves && col.customShelves.trim() !== "") {
                     customShelves = col.customShelves.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
