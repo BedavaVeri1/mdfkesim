@@ -2322,7 +2322,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let colDoorTotalH = doorTotalH;
                 if (noBottomBoard && index === 0 && (col.baseType === 'yere_basan_ayak' || col.baseType === 'yere_basan_baza')) {
                     let cbh = parseFloat(col.baseH) || 0;
-                    colDoorTotalH -= cbh;
+                    colDoorTotalH -= (cbh + thick);
                 }
                 const usableH = colDoorTotalH - bottomGap - topGap - innerGapsH;
 

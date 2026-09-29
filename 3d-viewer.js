@@ -594,8 +594,8 @@ function update3DModel() {
             let colSectionDoorAreaStart = sectionDoorAreaStart;
             if (noBottomBoard && index === 0 && (col.baseType === 'yere_basan_ayak' || col.baseType === 'yere_basan_baza')) {
                 let cbh = parseFloat(col.baseH) || 0;
-                colDoorTotalH -= cbh;
-                colSectionDoorAreaStart += cbh;
+                colDoorTotalH -= (cbh + thick);
+                colSectionDoorAreaStart += (cbh + thick);
             }
             const usableH = colDoorTotalH - bottomGap - topGap - innerGapsH;
 
