@@ -639,7 +639,7 @@ function update3DModel() {
                                 doorH = targetBoundary - currentY - 2; 
                             }
                         } else {
-                            doorH = doorStartLocalY + doorTotalH - topGap - currentY;
+                            doorH = doorStartLocalY + colDoorTotalH - topGap - currentY;
                         }
                     }
                     
@@ -728,7 +728,7 @@ function update3DModel() {
                     for(let i=0; i<col.doorQty; i++) doorWidths.push(defaultDoorW);
                 }
 
-                let doorCurrentY = sectionDoorAreaStart + bottomGap;
+                let doorCurrentY = colSectionDoorAreaStart + bottomGap;
 
                 for (let stack = 0; stack < col.stackQty; stack++) {
                     let doorH = doorHeights[stack];
@@ -851,7 +851,7 @@ function update3DModel() {
                     let rightCol = sec.columns[cIdx + 1];
                     let leftGap = (leftCol && (leftCol.baseType === 'yere_basan_ayak' || leftCol.baseType === 'yere_basan_baza')) ? (parseFloat(leftCol.baseH) || 0) : 0;
                     let rightGap = (rightCol && (rightCol.baseType === 'yere_basan_ayak' || rightCol.baseType === 'yere_basan_baza')) ? (parseFloat(rightCol.baseH) || 0) : 0;
-                    let minGap = Math.min(leftGap, rightGap);
+                    let minGap = Math.max(leftGap, rightGap); // Asma (0) olan tarafı yoksay, ayağı olan tarafa (100) uydur.
                     
                     dividerH = sec.h - thick - minGap;
                     dividerY = currentOuterY + minGap + (dividerH / 2);
