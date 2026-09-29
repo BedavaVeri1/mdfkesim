@@ -310,8 +310,10 @@ function update3DModel() {
     const rightSideX = (w / 2) - (thick / 2);
     const sideZ = 0; 
 
-    cabinetGroup.add(createPanel(thick, sideH, d, leftSideX, sideY, sideZ));
-    cabinetGroup.add(createPanel(thick, sideH, d, rightSideX, sideY, sideZ));
+    if (!splitSides) {
+        cabinetGroup.add(createPanel(thick, sideH, d, leftSideX, sideY, sideZ));
+        cabinetGroup.add(createPanel(thick, sideH, d, rightSideX, sideY, sideZ));
+    }
 
     // --- 2. ALT TABLA ---
     if (!noBottomBoard) {
@@ -894,7 +896,6 @@ function update3DModel() {
 
     // --- TAÇ (ÜST ÇIKINTI) ---
     const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
-    const splitSides = document.getElementById('mod-split-sides') ? document.getElementById('mod-split-sides').checked : false;
     if (addCrown) {
         // Taç karkasın tam üstüne binmeli. Karkasın en üst noktası: baseH + sideH (buradaki sideH yukarıda 18mm düşülmüş hali)
         let sidePanelBottomCrown = (baseType === "closed") ? 7 : baseH;
