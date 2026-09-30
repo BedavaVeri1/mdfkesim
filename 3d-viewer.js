@@ -314,6 +314,31 @@ function update3DModel() {
     if (!splitSides) {
         cabinetGroup.add(createPanel(thick, sideH, d, leftSideX, sideY, sideZ));
         cabinetGroup.add(createPanel(thick, sideH, d, rightSideX, sideY, sideZ));
+    } else {
+        // Bölümlere göre akıllı gruplama: aynı derinlikteki ardışık bölümler tek parça
+        let sideGroups = [];
+        let tempY = baseH;
+        sections.forEach((sec, i) => {
+            const sD = (sec.customD && parseFloat(sec.customD) > 0) ? parseFloat(sec.customD) : d;
+            const sH = sec.h || 0;
+            let hVal = i === 0 ? sH - (2 * thick) : sH - thick;
+            if (noBottomBoard && i === 0) hVal = sH - thick;
+            const startY = i === 0 ? tempY + (noBottomBoard ? 0 : thick) : tempY;
+
+            if (sideGroups.length === 0 || sideGroups[sideGroups.length - 1].d !== sD) {
+                sideGroups.push({ d: sD, h: hVal, startY: startY });
+            } else {
+                sideGroups[sideGroups.length - 1].h += sH;
+            }
+            tempY += sH;
+        });
+
+        sideGroups.forEach(grp => {
+            const grpCenterZ = (grp.d - d) / -2;
+            const grpCenterY = grp.startY + (grp.h / 2);
+            cabinetGroup.add(createPanel(thick, grp.h, grp.d, leftSideX, grpCenterY, grpCenterZ));
+            cabinetGroup.add(createPanel(thick, grp.h, grp.d, rightSideX, grpCenterY, grpCenterZ));
+        });
     }
 
     // --- 2. ALT TABLA ---
