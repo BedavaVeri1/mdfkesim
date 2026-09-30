@@ -328,7 +328,13 @@ function update3DModel() {
     // HER ZAMAN EN ÜST TABLAYI ÇİZ (Kutu her zaman kapalı olmalı)
     let sidePanelBottom = (baseType === "closed") ? 7 : baseH;
     const topY = sidePanelBottom + sideH - (thick / 2);
-    cabinetGroup.add(createPanel(innerW, thick, d, 0, topY, 0));
+    
+    let topSecD = d;
+    if (splitSides && sections && sections.length > 0) {
+        topSecD = parseFloat(sections[sections.length - 1].customD) || d;
+    }
+    const topSecCenterZ = (topSecD - d) / -2;
+    cabinetGroup.add(createPanel(innerW, thick, topSecD, 0, topY, topSecCenterZ));
     
     if (window.moduleWizardMode === 'vertical') {
         const innerH = sideH - (2 * thick);
@@ -888,14 +894,17 @@ function update3DModel() {
     // --- TAÇ (ÜST ÇIKINTI) ---
     const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
     if (addCrown) {
-        // Taç karkasın tam üstüne binmeli. Karkasın en üst noktası: baseH + sideH (buradaki sideH yukarıda 18mm düşülmüş hali)
         let sidePanelBottomCrown = (baseType === "closed") ? 7 : baseH;
         const crownY = sidePanelBottomCrown + sideH + (thick / 2);
-        // Taç ön tarafa doğru 25mm taşacak. 
-        // Derinlik d+25. Arka yüzü dolap arkasıyla sıfır (z = -d/2). 
-        // Dolayısıyla Z merkezi = -d/2 + (d+25)/2 = 12.5 olur.
-        const crownZ = 12.5; 
-        cabinetGroup.add(createPanel(w, thick, d + 25, 0, crownY, crownZ));
+        
+        let topSecD = d;
+        if (splitSides && sections && sections.length > 0) {
+            topSecD = parseFloat(sections[sections.length - 1].customD) || d;
+        }
+        
+        // Z merkezi = -d/2 + (topSecD + 25)/2
+        const crownZ = (-d / 2) + ((topSecD + 25) / 2);
+        cabinetGroup.add(createPanel(w, thick, topSecD + 25, 0, crownY, crownZ));
     }
 
     // Kamerayı yeni boyuta göre hedefe kilitle
