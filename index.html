@@ -23,6 +23,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+    <script>
+        // Flash önleme: Sayfa render edilmeden önce oturum kontrolü
+        if (sessionStorage.getItem('mdfkesim_auth') === 'true') {
+            document.documentElement.classList.add('pre-authenticated');
+        }
+    </script>
 </head>
 
 <body>
