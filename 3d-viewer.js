@@ -365,7 +365,7 @@ function update3DModel() {
         topSecD = (lastSec.customD && parseFloat(lastSec.customD) > 0) ? parseFloat(lastSec.customD) : d;
     }
     const topSecCenterZ = (topSecD - d) / 2;
-    cabinetGroup.add(createPanel(innerW, thick, topSecD, 0, topY, topSecCenterZ));
+    cabinetGroup.add(createPanel(w, thick, topSecD, 0, topY, topSecCenterZ));
     
     if (window.moduleWizardMode === 'vertical') {
         const innerH = sideH - (2 * thick);
@@ -517,7 +517,7 @@ function update3DModel() {
 
         // X ekseninde başlangıç noktaları
         let currentColX = -(innerW / 2); // İçeriden başlangıç (Raflar ve Dikmeler için)
-        let currentOuterColX = -(w / 2); // Dışarıdan başlangıç (Kapaklar için)
+        let currentOuterColX = -(innerW / 2); // İçeriden başlangıç (Kapaklar için)
         
         // Dikey boşluk (Bölüm dış sınırları) akıllı hesaplama
         const prevSec = index > 0 ? sections[index - 1] : null;
@@ -905,7 +905,8 @@ function update3DModel() {
                 
                 cabinetGroup.add(createPanel(thick, dividerH, secD, dikmeX, dividerY, secCenterZ));
                 
-                currentColX += thick; 
+                currentColX += thick;
+                currentOuterColX += thick;
             }
         });
         
