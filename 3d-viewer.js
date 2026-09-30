@@ -200,6 +200,7 @@ function update3DModel() {
 
     const w = parseFloat(document.getElementById('mod-w')?.value) || 0;
     const noBottomBoard = document.getElementById("mod-no-bottom") ? document.getElementById("mod-no-bottom").checked : false;
+    const splitSides = document.getElementById('mod-split-sides') ? document.getElementById('mod-split-sides').checked : false;
     const overallH = parseFloat(document.getElementById('mod-h')?.value) || 0;
     const d = parseFloat(document.getElementById('mod-d')?.value) || 0;
     const thick = parseFloat(document.getElementById('mod-thick')?.value) || 18;
