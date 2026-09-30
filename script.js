@@ -2075,7 +2075,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
             
             addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
-        }
             addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
             
             if (baseType === 'closed' && baseH > 7) {
@@ -2154,7 +2153,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- KATMANLI (YATAY) MOD MANTIĞI ---
-        {
         // 1. Yan Dikmeler
         addPartRow({ name: "Sağ Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
         addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
