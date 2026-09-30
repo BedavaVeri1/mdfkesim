@@ -334,7 +334,7 @@ function update3DModel() {
         });
 
         sideGroups.forEach(grp => {
-            const grpCenterZ = (grp.d - d) / -2;
+            const grpCenterZ = (grp.d - d) / 2;
             const grpCenterY = grp.startY + (grp.h / 2);
             cabinetGroup.add(createPanel(thick, grp.h, grp.d, leftSideX, grpCenterY, grpCenterZ));
             cabinetGroup.add(createPanel(thick, grp.h, grp.d, rightSideX, grpCenterY, grpCenterZ));
@@ -725,7 +725,7 @@ function update3DModel() {
                     }
                     
                     const actualGap = isDoorBoundary ? 0 : col.gap;
-                    const shelfD = d - actualGap;
+                    const shelfD = secD - actualGap;
                     const shelfZ = secCenterZ - (secD / 2) + (shelfD / 2);
                     
                     cabinetGroup.add(createPanel(colW, thick, shelfD, shelfCenterX, yPos, shelfZ));
