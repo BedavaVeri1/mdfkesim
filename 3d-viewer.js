@@ -331,7 +331,8 @@ function update3DModel() {
     
     let topSecD = d;
     if (splitSides && sections && sections.length > 0) {
-        topSecD = parseFloat(sections[sections.length - 1].customD) || d;
+        const lastSec = sections[sections.length - 1];
+        topSecD = (lastSec.customD && parseFloat(lastSec.customD) > 0) ? parseFloat(lastSec.customD) : d;
     }
     const topSecCenterZ = (topSecD - d) / -2;
     cabinetGroup.add(createPanel(innerW, thick, topSecD, 0, topY, topSecCenterZ));
@@ -453,7 +454,7 @@ function update3DModel() {
         });
     } else {
         sections.forEach((sec, index) => {
-            let secD = parseFloat(sec.customD) || d;
+            let secD = (sec.customD && parseFloat(sec.customD) > 0) ? parseFloat(sec.customD) : d;
             const zOffset = (d - secD) / 2; // Arka sıfır hizası için Z kayması
             const secCenterZ = -zOffset; // Parçaları geriye yaslamak için
 
@@ -900,7 +901,8 @@ function update3DModel() {
         
         let topSecD = d;
         if (splitSides && sections && sections.length > 0) {
-            topSecD = parseFloat(sections[sections.length - 1].customD) || d;
+            const lastSecCrown = sections[sections.length - 1];
+            topSecD = (lastSecCrown.customD && parseFloat(lastSecCrown.customD) > 0) ? parseFloat(lastSecCrown.customD) : d;
         }
         
         // Z merkezi = -d/2 + (topSecD + 25)/2
