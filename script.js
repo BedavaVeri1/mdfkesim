@@ -2205,13 +2205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 netH = sec.h - thick;
             }
 
-            // Eğer splitSides açıksa, bu bölümün KENDİ dış yanlarını (Sol/Sağ) ekle
-            if (splitSides) {
-                let sideH = index === 0 ? sec.h - (2 * thick) : sec.h - thick;
-                if (noBottomBoard && index === 0) sideH = sec.h - thick;
-                addPartRow({ name: `${index+1}. Bölüm Sol Yan Dikme`, h: sideH, w: secD, q: 1, rot: true, b: [false, true, true, true] });
-                addPartRow({ name: `${index+1}. Bölüm Sağ Yan Dikme`, h: sideH, w: secD, q: 1, rot: true, b: [false, true, true, true] });
-            }
+
 
             // Sütunlar Arası Orta Dikmeler
             if (sec.colsCount > 1) {

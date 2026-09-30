@@ -871,24 +871,14 @@ function update3DModel() {
             }
         });
         
-        // Split Sides (Eğer açıksa bu katman için Sol ve Sağ yan dikmeleri çiz)
-        if (splitSides) {
-            let secSideH = index === 0 ? sec.h - (2 * thick) : sec.h - thick;
-            let secSideY = currentOuterY + (secSideH / 2);
-            if (noBottomBoard && index === 0) {
-                secSideH = sec.h - thick;
-                secSideY = currentOuterY + (secSideH / 2);
-            }
-            cabinetGroup.add(createPanel(thick, secSideH, secD, leftSideX, secSideY, -zOffset));
-            cabinetGroup.add(createPanel(thick, secSideH, secD, rightSideX, secSideY, -zOffset));
-        }
+
 
         // --- Bölüm Üst Tablası (veya Sabit Ara Raf) ---
         const topY = currentOuterY + sec.h - (thick / 2);
         let sidePanelBottomAna = (baseType === "closed") ? 7 : baseH;
         const anaTavanY = sidePanelBottomAna + sideH - (thick / 2);
         if (topY < anaTavanY - 0.1) {
-            cabinetGroup.add(createPanel(innerW, thick, secD, 0, topY, -zOffset));
+            cabinetGroup.add(createPanel(innerW, thick, secD, 0, topY, secCenterZ));
         }
         
         currentOuterY += sec.h;
