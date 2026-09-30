@@ -157,16 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.templateBtn.addEventListener('click', downloadExcelTemplate);
         dom.saveBtn.addEventListener('click', saveProject);
         dom.loadBtn.addEventListener('click', loadProject);
-        dom.clearBtn.addEventListener('click', () => {
-            if (typeof window.showCustomConfirm === 'function') {
-                window.showCustomConfirm('Tüm listeyi silmek istediğinizden emin misiniz?', () => {
-                    dom.partsList.innerHTML = '';
-                    addPartRow();
-                });
-            } else {
-                if (confirm('Tüm liste silinecek?')) { dom.partsList.innerHTML = ''; addPartRow(); }
-            }
-        });
+        const exportExcelBtn = document.getElementById('export-excel-btn');
+        if (exportExcelBtn) exportExcelBtn.addEventListener('click', exportPartsToExcel);
         dom.excelInput.addEventListener('change', handleExcelUpload);
 
         // Stok Seçimi
@@ -2581,6 +2573,41 @@ function downloadExcelTemplate() {
     if (window.showCustomAlert) {
         window.showCustomAlert('Örnek Excel şablonu indirildi!', 'success');
     }
-}// Vercel Test Push - 1.03
+}
+
+function exportPartsToExcel() {
+    const rows = document.querySelectorAll('#parts-list .part-row');
+    if (!rows || rows.length === 0) {
+        if (window.showCustomAlert) window.showCustomAlert('Listede aktarılacak parça yok!', 'error');
+        return;
+    }
+
+    const header = ['Parça Adı', 'Boy (mm)', 'En (mm)', 'Adet', 'Üst Bant', 'Sağ Bant', 'Alt Bant', 'Sol Bant'];
+    const data = [header];
+
+    rows.forEach(row => {
+        const name = row.querySelector('.p-name') ? row.querySelector('.p-name').value : '';
+        const h    = row.querySelector('.p-h')    ? row.querySelector('.p-h').value    : '';
+        const w    = row.querySelector('.p-w')    ? row.querySelector('.p-w').value    : '';
+        const qty  = row.querySelector('.p-q')    ? row.querySelector('.p-q').value    : 1;
+        const bands = row.querySelectorAll('.banding-chk');
+        const b = Array.from(bands).map(cb => cb.checked ? 'X' : '');
+        data.push([name, h, w, qty, b[0]||'', b[1]||'', b[2]||'', b[3]||'']);
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = [
+        { wch: 22 }, { wch: 10 }, { wch: 10 }, { wch: 8 },
+        { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, 'Kesim Listesi');
+
+    const tarih = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, 'KesimListesi_' + tarih + '.xlsx');
+
+    if (window.showToast) showToast('<b>Excel dosyası indirildi!</b>', 'success');
+}
+
 // Vercel Public Test Push
 // Vercel deployment trigger

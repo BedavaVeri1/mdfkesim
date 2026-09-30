@@ -336,6 +336,8 @@ function update3DModel() {
 
         // Her grubun tepesinden üst tabla kalınlığını çıkar
         sideGroups.forEach(grp => { grp.h -= thick; });
+        // En üst grubun tepesine 1mm boşluk: üst tabla ile Z-fighting olmasın
+        if (sideGroups.length > 0) sideGroups[sideGroups.length - 1].h -= 1;
 
 
         sideGroups.forEach(grp => {
@@ -517,7 +519,7 @@ function update3DModel() {
 
         // X ekseninde başlangıç noktaları
         let currentColX = -(innerW / 2); // İçeriden başlangıç (Raflar ve Dikmeler için)
-        let currentOuterColX = -(innerW / 2); // İçeriden başlangıç (Kapaklar için)
+        let currentOuterColX = -(w / 2); // Dışarıdan başlangıç (Kapaklar için - bindirmeli sistem)
         
         // Dikey boşluk (Bölüm dış sınırları) akıllı hesaplama
         const prevSec = index > 0 ? sections[index - 1] : null;
@@ -741,7 +743,7 @@ function update3DModel() {
             }
 
             // 4. KAPAKLARI ÇİZ
-            const doorTotalW = colW;
+            const doorTotalW = (w * (colW / availableW)); // Bindirmeli sistem: dış yüzden dış yüze orantılı
             
             if (col.doorQty > 0 && col.stackQty > 0) {
                 const doorThick = 18; 
@@ -906,7 +908,6 @@ function update3DModel() {
                 cabinetGroup.add(createPanel(thick, dividerH, secD, dikmeX, dividerY, secCenterZ));
                 
                 currentColX += thick;
-                currentOuterColX += thick;
             }
         });
         
