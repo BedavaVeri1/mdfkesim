@@ -403,7 +403,7 @@ function update3DModel() {
                     const sY = shelfCurrentY + (thick / 2);
                     const sX = currentModX + (modW / 2);
                     const sZ = -7.5; 
-                    cabinetGroup.add(createPanel(modW, thick, d - 15, sX, sY, sZ));
+                    cabinetGroup.add(createPanel(modW, thick, secD - 15, sX, sY, sZ));
                     shelfCurrentY += thick;
                 }
             }
@@ -421,7 +421,7 @@ function update3DModel() {
                     const drW = modW - 4; 
                     const drX = currentModX + (modW / 2);
                     const drY = drawerCurrentY + (drawerH / 2) + 2; 
-                    const drZ = (d / 2) + 2; 
+                    const drZ = secCenterZ + (secD / 2) + 2; 
                     cabinetGroup.add(createPanel(drW, drawerH, thick, drX, drY, drZ, true));
                     drawerCurrentY += drawerH + 4;
                 }
@@ -436,7 +436,7 @@ function update3DModel() {
                 let currentDoorY = baseH + thick + drawerTotalH + 2; 
                 for (let stack = 0; stack < col.stackQty; stack++) {
                     const dY = currentDoorY + (doorH / 2);
-                    const dZ = (d / 2) + 2;
+                    const dZ = secCenterZ + (secD / 2) + 2;
                     if (col.doorQty === 2) {
                         const dXLeft = currentModX + (doorW / 2) + 2;
                         const dXRight = currentModX + modW - (doorW / 2) - 2;
@@ -455,6 +455,7 @@ function update3DModel() {
         sections.forEach((sec, index) => {
             let secD = parseFloat(sec.customD) || d;
             const zOffset = (d - secD) / 2; // Arka sıfır hizası için Z kayması
+            const secCenterZ = -zOffset; // Parçaları geriye yaslamak için
 
 
         let netH;
@@ -541,7 +542,7 @@ function update3DModel() {
                         // Zemin tablası
                         const colBaseH = col.baseH || 0;
                         const mBaseY = colBaseH + (thick / 2);
-                        cabinetGroup.add(createPanel(colW, thick, secD, cX, mBaseY, -zOffset));
+                        cabinetGroup.add(createPanel(colW, thick, secD, cX, mBaseY, secCenterZ));
                         // Ayak Görselleri
                         if (col.baseType === 'yere_basan_ayak' && colBaseH > 0) {
                             const legMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
@@ -699,7 +700,7 @@ function update3DModel() {
                     
                     const actualGap = isDoorBoundary ? 0 : col.gap;
                     const shelfD = d - actualGap;
-                    const shelfZ = -(d / 2) + (shelfD / 2);
+                    const shelfZ = secCenterZ - (secD / 2) + (shelfD / 2);
                     
                     cabinetGroup.add(createPanel(colW, thick, shelfD, shelfCenterX, yPos, shelfZ));
                     
@@ -713,7 +714,7 @@ function update3DModel() {
             
             if (col.doorQty > 0 && col.stackQty > 0) {
                 const doorThick = 18; 
-                const doorZ = (d / 2) + (doorThick / 2); 
+                const doorZ = secCenterZ + (secD / 2) + (doorThick / 2); 
                 
                 const isLeftCol = (cIdx === 0);
                 const isRightCol = (cIdx === sec.colsCount - 1);
@@ -871,7 +872,7 @@ function update3DModel() {
                     dividerY = currentOuterY + minGap + (dividerH / 2);
                 }
                 
-                cabinetGroup.add(createPanel(thick, dividerH, secD, dikmeX, dividerY, -zOffset));
+                cabinetGroup.add(createPanel(thick, dividerH, secD, dikmeX, dividerY, secCenterZ));
                 
                 currentColX += thick; 
             }
