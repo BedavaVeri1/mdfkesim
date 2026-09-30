@@ -321,17 +321,22 @@ function update3DModel() {
         sections.forEach((sec, i) => {
             const sD = (sec.customD && parseFloat(sec.customD) > 0) ? parseFloat(sec.customD) : d;
             const sH = sec.h || 0;
-            let hVal = i === 0 ? sH - (2 * thick) : sH - thick;
-            if (noBottomBoard && i === 0) hVal = sH - thick;
             const startY = i === 0 ? tempY + (noBottomBoard ? 0 : thick) : tempY;
 
             if (sideGroups.length === 0 || sideGroups[sideGroups.length - 1].d !== sD) {
-                sideGroups.push({ d: sD, h: hVal, startY: startY });
+                // Yeni grup — ilk bölümde alttan thick çıkar (varsa), üstten thick sonra çıkar
+                const firstH = i === 0 ? sH - (noBottomBoard ? 0 : thick) : sH;
+                sideGroups.push({ d: sD, h: firstH, startY: startY });
             } else {
+                // Aynı derinlik — yüksekliği direkt ekle, boşluk kalmasın
                 sideGroups[sideGroups.length - 1].h += sH;
             }
             tempY += sH;
         });
+
+        // Her grubun tepesinden üst tabla kalınlığını çıkar
+        sideGroups.forEach(grp => { grp.h -= thick; });
+
 
         sideGroups.forEach(grp => {
             const grpCenterZ = (grp.d - d) / 2;
@@ -359,7 +364,7 @@ function update3DModel() {
         const lastSec = sections[sections.length - 1];
         topSecD = (lastSec.customD && parseFloat(lastSec.customD) > 0) ? parseFloat(lastSec.customD) : d;
     }
-    const topSecCenterZ = (topSecD - d) / -2;
+    const topSecCenterZ = (topSecD - d) / 2;
     cabinetGroup.add(createPanel(innerW, thick, topSecD, 0, topY, topSecCenterZ));
     
     if (window.moduleWizardMode === 'vertical') {
