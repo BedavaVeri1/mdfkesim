@@ -741,11 +741,11 @@ function update3DModel() {
             }
 
             // 4. KAPAKLARI ÇİZ
-            const doorTotalW = (w * (colW / availableW)); 
+            const doorTotalW = colW;
             
             if (col.doorQty > 0 && col.stackQty > 0) {
                 const doorThick = 18; 
-                const doorZ = secCenterZ + (secD / 2) + (doorThick / 2); 
+                const doorZ = secCenterZ + (secD / 2) + (doorThick / 2) + 2; 
                 
                 const isLeftCol = (cIdx === 0);
                 const isRightCol = (cIdx === sec.colsCount - 1);
@@ -915,9 +915,14 @@ function update3DModel() {
         const topY = currentOuterY + sec.h - (thick / 2);
         let sidePanelBottomAna = (baseType === "closed") ? 7 : baseH;
         const anaTavanY = sidePanelBottomAna + sideH - (thick / 2);
-        if (topY < anaTavanY - 0.1) {
-            cabinetGroup.add(createPanel(innerW, thick, secD, 0, topY, secCenterZ));
-        }
+            // splitSides + derinlik değişiyorsa ara tabla tam genişlikte (w) yan dikmelerin üstünü kapatır
+            let tablaW = innerW;
+            if (splitSides && index < sections.length - 1) {
+                const nextSec = sections[index + 1];
+                const nextSecD = (nextSec.customD && parseFloat(nextSec.customD) > 0) ? parseFloat(nextSec.customD) : d;
+                if (nextSecD !== secD) tablaW = w;
+            }
+            cabinetGroup.add(createPanel(tablaW, thick, secD, 0, topY, secCenterZ));
         
         currentOuterY += sec.h;
     });
