@@ -2010,6 +2010,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generateSingleModuleParts(projName) {
+        const splitSides = document.getElementById('mod-split-sides') ? document.getElementById('mod-split-sides').checked : false;
         // Geçici olarak addPartRow'u ez (isimlere prefix eklemek için)
         const originalAddPartRow = addPartRow;
         addPartRow = function(data = {}) {
