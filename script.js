@@ -2154,19 +2154,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- KATMANLI (YATAY) MOD MANTIĞI ---
+        {
         // 1. Yan Dikmeler
         addPartRow({ name: "Sağ Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
         addPartRow({ name: "Sol Yan Dikme", h: sideH, w: d, q: 1, rot: true, b: [false, true, false, false] });
         
         // 1.5. Kapalı Baza Parçası
-        if (!noBottomBoard) {
         if (baseType === 'closed' && baseH > 7) {
             addPartRow({ name: "Ön Baza", h: baseH - 7, w: internalW, q: 1, rot: true, b: [false, true, false, false] });
         }
 
         // 2. Alt ve Üst Tablalar
-        addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        if (!noBottomBoard) {
+            addPartRow({ name: "Alt Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+        }
         addPartRow({ name: "Üst Tabla", h: internalW, w: d, q: 1, rot: true, b: [false, true, false, false] });
+
         
         // 2.5 Taç (Üst Taşkınlık)
         const addCrown = document.getElementById('mod-add-crown') ? document.getElementById('mod-add-crown').checked : true;
